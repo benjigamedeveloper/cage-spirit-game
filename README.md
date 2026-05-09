@@ -50,6 +50,7 @@ All fighters are original anime-style MMA characters created for Cage Spirit.
 | `K` | Heavier kick |
 | `L` | Block / guard |
 | `I` | Special attack when special meter is full |
+| `P` | Pause / resume the fight |
 
 ## Combo
 
@@ -71,11 +72,12 @@ If the combo lands in time, the game shows combo text and automatically fires a 
 - More detailed canvas fighters with heads, hair, face details, torsos, shorts, gloves/wraps, legs, shoes, color themes, aura effects, and style-specific body details.
 - Player versus active AI opponent that follows consistently, manages distance, blocks, backs up, dashes in, punches, kicks, and sometimes uses full-meter specials.
 - Health, stamina, and special meter UI that reflects each fighter's health/stamina maximums and special color theme.
-- Punch, kick, dash, hop, block, special attack, and combo finisher.
+- Punch, kick, dash, hop, block, special attack, pause/resume, and combo finisher.
 - Improved dash with stamina cost, cooldown, speed lines, dust burst, and afterimages.
 - Slower stamina regeneration with clear low-stamina feedback.
 - Cinematic specials with aura charge-up, screen flash, speed lines, hit pause, themed impacts, camera shake, and move-name text.
 - Knockback, hit reactions, guard sparks, dust, aura particles, floating damage numbers, and screen shake.
+- Pause overlay with **Resume** and **Restart** buttons.
 - End-of-match overlay with a **Choose Again** button.
 
 ## Beginner Editing Guide
