@@ -8,6 +8,8 @@
 </head>
 <body>
   <main class="game-shell">
+    <button id="pauseButton" class="pause-button" type="button">Pause</button>
+
     <section id="titleScreen" class="title-screen">
       <div class="title-card">
         <p class="eyebrow">Anime MMA Arcade Prototype</p>
@@ -64,8 +66,20 @@
       <span>K Kick</span>
       <span>L Block</span>
       <span>I Special</span>
-      <span>P,P,K Combo</span>
+      <span>P Pause</span>
+      <span>J,J,K Combo</span>
     </section>
+
+    <div id="pauseOverlay" class="pause-overlay hidden">
+      <div class="pause-card">
+        <h2>PAUSED</h2>
+        <p>Fight paused. Press P or Resume to continue.</p>
+        <div class="pause-actions">
+          <button id="resumeButton" class="primary-button" type="button">Resume</button>
+          <button id="pauseRestartButton" class="primary-button secondary-button" type="button">Restart</button>
+        </div>
+      </div>
+    </div>
 
     <div id="endOverlay" class="end-overlay hidden">
       <div class="end-card">

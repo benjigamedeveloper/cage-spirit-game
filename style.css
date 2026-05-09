@@ -59,7 +59,8 @@ body {
 .title-card,
 .select-header,
 .fighter-card,
-.end-card {
+.end-card,
+.pause-card {
   border: 1px solid rgba(104, 247, 255, 0.34);
   background:
     linear-gradient(135deg, rgba(255, 255, 255, 0.07), transparent 40%),
@@ -168,6 +169,57 @@ body {
   text-shadow: 0 0 14px rgba(247, 216, 74, 0.8);
 }
 
+
+.pause-button {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  z-index: 4;
+  padding: 9px 16px;
+  border: 1px solid rgba(104, 247, 255, 0.55);
+  border-radius: 999px;
+  background: rgba(13, 18, 36, 0.88);
+  color: var(--text);
+  cursor: pointer;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  box-shadow: 0 0 18px rgba(104, 247, 255, 0.22);
+}
+
+.pause-button:hover,
+.pause-button:focus-visible {
+  outline: 2px solid var(--accent);
+}
+
+.pause-overlay {
+  background:
+    radial-gradient(circle at 50% 34%, rgba(247, 216, 74, 0.18), transparent 24%),
+    radial-gradient(circle, rgba(25, 35, 70, 0.72), rgba(2, 3, 10, 0.88));
+}
+
+.pause-card h2 {
+  margin: 0 0 8px;
+  font-size: clamp(42px, 8vw, 78px);
+  text-transform: uppercase;
+  text-shadow: 0 0 18px rgba(247, 216, 74, 0.8);
+}
+
+.pause-card p {
+  color: var(--muted);
+}
+
+.pause-actions {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.secondary-button {
+  background: linear-gradient(135deg, #ff7bff, var(--danger));
+}
+
 #gameCanvas {
   display: block;
   width: 100%;
@@ -199,7 +251,8 @@ body {
 
 .title-screen,
 .character-select,
-.end-overlay {
+.end-overlay,
+.pause-overlay {
   position: absolute;
   inset: 0;
   z-index: 5;
@@ -212,8 +265,13 @@ body {
     repeating-linear-gradient(60deg, rgba(104, 247, 255, 0.08) 0 2px, transparent 2px 24px);
 }
 
+.pause-overlay {
+  z-index: 6;
+}
+
 .title-card,
 .end-card,
+.pause-card,
 .select-header {
   max-width: 560px;
   padding: 36px;
@@ -225,6 +283,7 @@ body {
 
 .title-card::before,
 .end-card::before,
+.pause-card::before,
 .select-header::before {
   content: "";
   position: absolute;
