@@ -12,10 +12,16 @@
 
     <section id="titleScreen" class="title-screen">
       <div class="title-card">
-        <p class="eyebrow">Anime MMA Arcade Prototype</p>
+        <p class="eyebrow">Dark Tournament Arcade</p>
         <h1>Cage Spirit</h1>
-        <p class="tagline">Dash in, guard up, and unleash your spirit finisher inside the neon cage.</p>
-        <button id="startButton" class="primary-button">Choose Fighter</button>
+        <p class="tagline">Choose an original anime MMA fighter, manage stamina, and ignite cinematic non-graphic specials inside the neon cage.</p>
+        <div class="title-actions">
+          <button id="startButton" class="primary-button">Choose Fighter</button>
+          <button id="helpButton" class="primary-button secondary-button" type="button">Controls</button>
+        </div>
+        <div id="helpPanel" class="help-panel hidden">
+          <strong>Keyboard:</strong> A/D move, W hop, Shift dash, J punch, K kick, L block, I special, P pause.
+        </div>
       </div>
     </section>
 
@@ -23,19 +29,32 @@
       <div class="select-header">
         <p class="eyebrow">Original Fighter Roster</p>
         <h2>Choose Your Cage Spirit</h2>
-        <p>Select one of five original anime MMA fighters. The AI will pick a different rival.</p>
+        <p>Pick a fighter, preview the AI rival, choose difficulty, then confirm the match.</p>
+        <div class="select-actions">
+          <label for="difficultySelect">AI Difficulty</label>
+          <select id="difficultySelect" aria-label="AI difficulty">
+            <option value="easy">Easy</option>
+            <option value="normal" selected>Normal</option>
+            <option value="hard">Hard</option>
+          </select>
+          <button id="randomButton" class="primary-button mini-button" type="button">Random Fighter</button>
+          <button id="confirmButton" class="primary-button mini-button" type="button">Start Fight</button>
+        </div>
       </div>
-      <div id="fighterCards" class="fighter-cards"></div>
+      <div class="select-layout">
+        <div id="fighterCards" class="fighter-cards"></div>
+        <aside id="fighterPreview" class="fighter-preview" aria-live="polite"></aside>
+      </div>
     </section>
 
     <section class="hud" aria-label="Fight status">
       <div class="fighter-panel player-panel">
         <h2 id="playerName">Choose Fighter</h2>
-        <div class="bar-label"><span>Health</span><span id="playerHealthText">100</span></div>
+        <div class="bar-label"><span>Health</span><span id="playerHealthText">100 / 100</span></div>
         <div class="bar"><div id="playerHealth" class="fill health-fill"></div></div>
-        <div class="bar-label"><span>Stamina</span><span id="playerStaminaText">100</span></div>
+        <div class="bar-label"><span>Stamina</span><span id="playerStaminaText">100 / 100</span></div>
         <div class="bar"><div id="playerStamina" class="fill stamina-fill"></div></div>
-        <div class="bar-label"><span>Special</span><span id="playerSpecialText">0%</span></div>
+        <div class="bar-label"><span>Special</span><span id="playerSpecialText">0 / 100</span></div>
         <div class="bar"><div id="playerSpecial" class="fill special-fill"></div></div>
       </div>
 
@@ -46,11 +65,11 @@
 
       <div class="fighter-panel enemy-panel">
         <h2 id="enemyName">Awaiting Rival</h2>
-        <div class="bar-label"><span>Health</span><span id="enemyHealthText">100</span></div>
+        <div class="bar-label"><span>Health</span><span id="enemyHealthText">100 / 100</span></div>
         <div class="bar"><div id="enemyHealth" class="fill health-fill"></div></div>
-        <div class="bar-label"><span>Stamina</span><span id="enemyStaminaText">100</span></div>
+        <div class="bar-label"><span>Stamina</span><span id="enemyStaminaText">100 / 100</span></div>
         <div class="bar"><div id="enemyStamina" class="fill stamina-fill"></div></div>
-        <div class="bar-label"><span>Special</span><span id="enemySpecialText">0%</span></div>
+        <div class="bar-label"><span>Special</span><span id="enemySpecialText">0 / 100</span></div>
         <div class="bar"><div id="enemySpecial" class="fill special-fill"></div></div>
       </div>
     </section>
@@ -70,13 +89,22 @@
       <span>J,J,K Combo</span>
     </section>
 
+    <div id="vsOverlay" class="vs-overlay hidden">
+      <div class="vs-card">
+        <p id="vsPlayer">Player</p>
+        <strong>VS</strong>
+        <p id="vsEnemy">Rival</p>
+      </div>
+    </div>
+
     <div id="pauseOverlay" class="pause-overlay hidden">
       <div class="pause-card">
         <h2>PAUSED</h2>
         <p>Fight paused. Press P or Resume to continue.</p>
         <div class="pause-actions">
           <button id="resumeButton" class="primary-button" type="button">Resume</button>
-          <button id="pauseRestartButton" class="primary-button secondary-button" type="button">Restart</button>
+          <button id="pauseRestartButton" class="primary-button secondary-button" type="button">Restart Match</button>
+          <button id="pauseSelectButton" class="primary-button secondary-button" type="button">Character Select</button>
         </div>
       </div>
     </div>
@@ -85,7 +113,11 @@
       <div class="end-card">
         <h2 id="endTitle">Fight Over</h2>
         <p id="endMessage">Great match!</p>
-        <button id="restartButton" class="primary-button">Choose Again</button>
+        <div class="end-actions">
+          <button id="restartButton" class="primary-button">Back to Select</button>
+          <button id="rematchButton" class="primary-button secondary-button" type="button">Rematch</button>
+          <button id="quickRestartButton" class="primary-button secondary-button" type="button">Restart Match</button>
+        </div>
       </div>
     </div>
   </main>
