@@ -9,14 +9,15 @@ No installs are required.
 1. Download or clone this folder.
 2. Open `index.html` directly in a modern browser, or publish the folder to GitHub Pages.
 3. Click **Choose Fighter**.
-4. Pick a fighter, choose AI difficulty, and press **Start Fight**.
+4. Pick a Fighter Card, choose AI difficulty, and press **Confirm Fighter**.
+5. Choose **Timed Match** or **Untimed Match**, then press **Show VS Screen**.
 
 The game does **not** require npm, Node, React, Phaser, external libraries, a bundler, or a setup step.
 
 ## Match Flow
 
 ```text
-Title Screen → Character Select → VS Intro → Fight → Win/Lose Screen
+Title Screen → Character Select → Match Options → VS Screen → Fight → Win/Lose Screen
 ```
 
 The end screen includes options to return to character select, rematch the same pairing, or restart the current match.
@@ -34,6 +35,7 @@ The end screen includes options to return to character select, rematch the same 
 | `L` | Block / guard |
 | `I` | Special attack when special meter is full |
 | `P` | Pause / resume the fight |
+| `Space` | During Final Clash only, tap repeatedly to build Player Clash Power |
 
 ### Pause Controls
 
@@ -45,7 +47,10 @@ The fight can be paused with the visible **Pause** button or the `P` key. While 
 
 ## How to Play
 
-Reduce the rival fighter's health to 0 before they defeat you.
+Reduce the rival fighter's health to 0 before they defeat you. Before the VS screen, choose a match type:
+
+- **Timed Match**: 75-second round timer, Final Clash in the last 10 seconds, and a decision by remaining health when time expires. If health is almost equal, the result is a draw.
+- **Untimed Match**: no timer and no Final Clash. The fight continues until one fighter reaches 0 health and the result is **Won by KO**.
 
 - Health, stamina, and special bars show exact values such as `85 / 100`.
 - Punches, kicks, hops, dashes, blocking, and specials cost stamina.
@@ -54,6 +59,7 @@ Reduce the rival fighter's health to 0 before they defeat you.
 - Landing attacks builds special meter.
 - Specials require a full `100 / 100` special meter and reset to `0 / 100` after use.
 - No special instantly wins; stronger moves have range, timing, recovery, or stamina risks.
+- In Timed Match, **Final Clash** starts at 10 seconds. Tap `Space` to build the player meter while the AI builds its meter automatically based on difficulty, stamina, health, and fighter type. The winner lands a cinematic final combo for strong but non-instant damage before the match decision.
 
 ## Combo
 
@@ -74,7 +80,16 @@ The character select screen includes three AI difficulty settings:
 
 ## Fighter Roster
 
-All fighters are original characters made for Cage Spirit.
+All fighters are original characters made for Cage Spirit. Character select now presents original sports-card-style **Fighter Cards** with OVR, Power, Speed, Defense, Stamina, Technique, Special, playstyle, strengths, weaknesses, and special move info.
+
+| Fighter | OVR | Power | Speed | Defense | Stamina | Technique | Special |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| Spirit Brawler | 84 | 82 | 82 | 82 | 84 | 85 | 86 |
+| Storm Boxer | 86 | 74 | 95 | 68 | 82 | 90 | 88 |
+| Iron Wrestler | 85 | 94 | 58 | 92 | 80 | 76 | 87 |
+| Flame Kicker | 85 | 88 | 84 | 74 | 80 | 84 | 89 |
+| Shadow Counter | 87 | 76 | 82 | 91 | 88 | 94 | 90 |
+| Gravity Monk | 86 | 72 | 78 | 88 | 86 | 92 | 93 |
 
 | Fighter | Role | Difficulty | Theme | Special |
 | --- | --- | --- | --- | --- |
@@ -88,17 +103,18 @@ All fighters are original characters made for Cage Spirit.
 ## Current Features
 
 - Dark tournament title screen and controls/help panel.
-- Fighting-game-style character select with selected highlight, random fighter button, AI preview, stat bars, strengths, weaknesses, roles, difficulty ratings, and special descriptions.
+- Fighting-game-style character select with selected highlight, active confirm button only after selection, random fighter button, AI preview, Fighter Card ratings, stat bars, strengths, weaknesses, roles, difficulty ratings, and special descriptions.
 - Six original fighters with unique stats, colors, AI behavior preferences, silhouettes, hair/gear details, and special behaviors.
+- Match Options screen with Timed and Untimed rules before the VS intro.
 - VS intro before each match.
 - Dark cage arena with fence pattern, floor grid, overhead lights, glowing edges, crowd silhouettes, shadows, and cinematic impact effects.
-- Stable health, stamina, and special bars that clamp to `0%`–`100%` and display exact current/max values.
+- Stable health, stamina, special, timer, and Final Clash bars that clamp to `0%`–`100%` and display exact current/max values.
 - Safety checks for invalid fighter data, NaN values, arena bounds, health/stamina/special clamping, and effect cleanup.
 - Responsive movement, dash dust, afterimages, knockback, hit pause, guard sparks, combo counter, low-stamina warnings, and special-ready glow.
 - Kick animation extends the existing front leg only, avoiding extra limbs.
 - AI behaviors tuned per fighter: balanced, pressure, grappler, kicker, counter, and control.
 - Pause overlay with resume, restart, and character-select flow.
-- Win/lose screen with winner/loser summary, rematch, restart, and back-to-select actions.
+- Win/lose screen with KO, Decision, or Draw result text plus rematch, restart, and back-to-select actions.
 
 ## Beginner Editing Guide
 
@@ -107,6 +123,7 @@ Open `game.js` and look near the top for:
 - `FIGHTERS` to edit roster data, stats, colors, roles, strengths, weaknesses, special names, and AI behavior.
 - `STATS` to edit movement, dash, hop, guard, arena, and stamina settings.
 - `ATTACKS` to edit punch, kick, combo, and special timing/range templates.
+- `ROUND_TIME_SECONDS` to edit the Timed Match round length.
 
 Each fighter has clean data for id, name, role, difficulty, description, strengths, weaknesses, health, stamina, speed, damage, defense, dash cost, stamina regeneration, special, theme colors, and AI preference.
 

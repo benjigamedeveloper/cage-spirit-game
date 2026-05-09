@@ -14,9 +14,22 @@ const ui = {
   startButton: document.getElementById("startButton"),
   helpButton: document.getElementById("helpButton"),
   helpPanel: document.getElementById("helpPanel"),
+  selectBackButton: document.getElementById("selectBackButton"),
   randomButton: document.getElementById("randomButton"),
   confirmButton: document.getElementById("confirmButton"),
   difficultySelect: document.getElementById("difficultySelect"),
+  matchOptions: document.getElementById("matchOptions"),
+  matchupSummary: document.getElementById("matchupSummary"),
+  timedMatchButton: document.getElementById("timedMatchButton"),
+  untimedMatchButton: document.getElementById("untimedMatchButton"),
+  optionsBackButton: document.getElementById("optionsBackButton"),
+  beginVsButton: document.getElementById("beginVsButton"),
+  timerDisplay: document.getElementById("timerDisplay"),
+  finalClashOverlay: document.getElementById("finalClashOverlay"),
+  playerClashMeter: document.getElementById("playerClashMeter"),
+  enemyClashMeter: document.getElementById("enemyClashMeter"),
+  playerClashText: document.getElementById("playerClashText"),
+  enemyClashText: document.getElementById("enemyClashText"),
   vsOverlay: document.getElementById("vsOverlay"),
   vsPlayer: document.getElementById("vsPlayer"),
   vsEnemy: document.getElementById("vsEnemy"),
@@ -76,6 +89,11 @@ const ATTACKS = {
 };
 
 const MAX_SPECIAL = 100;
+// 75 seconds fits the current medium-paced damage, stamina costs, and regen: long enough for specials, short enough to avoid dragging.
+const ROUND_TIME_SECONDS = 75;
+const FINAL_CLASH_SECONDS = 10;
+const DRAW_HEALTH_MARGIN = 4;
+const MAX_CLASH_TAPS_PER_SECOND = 7;
 const SAFE_COLORS = {
   suit: "#68f7ff",
   skin: "#ffd2a6",
@@ -240,6 +258,15 @@ const FIGHTERS = [
   }
 ];
 
+const FIGHTER_RATINGS = {
+  "spirit-brawler": { ovr: 84, Power: 82, Speed: 82, Defense: 82, Stamina: 84, Technique: 85, Special: 86 },
+  "storm-boxer": { ovr: 86, Power: 74, Speed: 95, Defense: 68, Stamina: 82, Technique: 90, Special: 88 },
+  "iron-wrestler": { ovr: 85, Power: 94, Speed: 58, Defense: 92, Stamina: 80, Technique: 76, Special: 87 },
+  "flame-kicker": { ovr: 85, Power: 88, Speed: 84, Defense: 74, Stamina: 80, Technique: 84, Special: 89 },
+  "shadow-counter": { ovr: 87, Power: 76, Speed: 82, Defense: 91, Stamina: 88, Technique: 94, Special: 90 },
+  "gravity-monk": { ovr: 86, Power: 72, Speed: 78, Defense: 88, Stamina: 86, Technique: 92, Special: 93 }
+};
+
 const COLORS = {
   player: FIGHTERS[0].colors,
   enemy: FIGHTERS[3].colors
@@ -257,7 +284,16 @@ let comboSequence = [];
 let comboTimer = 0;
 let comboMessageTimer = 0;
 let pausedStatusText = "";
-let selectedFighterId = "spirit-brawler";
+let selectedFighterId = null;
+let selectedMatchType = "timed";
+let matchTimeRemaining = ROUND_TIME_SECONDS;
+let finalClashActive = false;
+let finalClashTriggered = false;
+let finalClashResolved = false;
+let playerClashPower = 0;
+let enemyClashPower = 0;
+let clashTapWindowStart = 0;
+let clashTapCount = 0;
 let lastPlayerId = "spirit-brawler";
 let lastEnemyId = "storm-boxer";
 let aiDifficulty = "normal";
@@ -282,6 +318,8 @@ function normalizeFighterData(fighterData = {}) {
   const maxStamina = Math.max(1, safeNumber(sourceStats.maxStamina, safeNumber(sourceStats.stamina, SAFE_FIGHTER.stats.maxStamina)));
   const colors = { ...SAFE_COLORS, ...(fighterData.colors || {}) };
 
+  const ratingFallback = FIGHTER_RATINGS[fighterData.id] || { ovr: 80, Power: 80, Speed: 80, Defense: 80, Stamina: 80, Technique: 80, Special: 80 };
+
   return {
     ...SAFE_FIGHTER,
     ...fighterData,
@@ -298,6 +336,7 @@ function normalizeFighterData(fighterData = {}) {
     specialDamage: Math.max(0, safeNumber(fighterData.specialDamage, SAFE_FIGHTER.specialDamage)),
     aiBehavior: fighterData.aiBehavior || SAFE_FIGHTER.aiBehavior,
     theme: fighterData.theme || SAFE_FIGHTER.theme,
+    ratings: { ...ratingFallback, ...(fighterData.ratings || {}) },
     stats: {
       ...SAFE_FIGHTER.stats,
       ...sourceStats,
@@ -446,13 +485,16 @@ function renderCharacterCards() {
     card.style.setProperty("--card-accent", fighter.colors.suit);
     card.style.setProperty("--card-dark", fighter.colors.shorts);
     card.innerHTML = `
+      <div class="rating-badge"><b>${fighter.ratings.ovr}</b><span>OVR</span></div>
       <div class="fighter-portrait" aria-hidden="true"><span></span></div>
       <div class="card-topline"><span>${fighter.difficulty}</span><span>${fighter.theme}</span></div>
       <h3>${fighter.name}</h3>
       <p class="fighter-style">${fighter.role}</p>
       <p class="fighter-desc">${fighter.description}</p>
       <div class="stat-bars small-stats">${buildStatBars(fighter)}</div>
-      <p class="fighter-special">Special: ${fighter.specialName}</p>
+      <p class="fighter-special">Special Move: ${fighter.specialName}</p>
+      <p class="ability-desc"><strong>Strengths:</strong> ${fighter.strengths.join(", ")}</p>
+      <p class="ability-desc"><strong>Weaknesses:</strong> ${fighter.weaknesses.join(", ")}</p>
       <p class="ability-desc">${fighter.specialDescription}</p>
       <span class="choose-label">${fighter.id === selectedFighterId ? "Selected" : "Select Fighter"}</span>
     `;
@@ -462,31 +504,34 @@ function renderCharacterCards() {
 }
 
 function statPercent(label, fighter) {
-  const stats = fighter.stats;
-  const power = Math.round(((stats.punchDamage + stats.kickDamage) / 2) * 5);
-  const special = Math.round((stats.specialDamage || fighter.specialDamage || 30) * 2.6);
-  const values = {
-    Health: stats.maxHealth,
-    Stamina: stats.maxStamina,
-    Speed: Math.round(stats.speed / 3.1),
-    Power: power,
-    Defense: stats.defense,
-    Special: special
-  };
-  return clampNumber(values[label], 0, 100, 50);
+  const ratings = fighter.ratings || FIGHTER_RATINGS[fighter.id] || {};
+  const value = ratings[label];
+  return clampNumber(value, 0, 100, 80);
 }
 
 function buildStatBars(fighter) {
-  return ["Health", "Stamina", "Speed", "Power", "Defense", "Special"].map((label) => {
+  return ["Power", "Speed", "Defense", "Stamina", "Technique", "Special"].map((label) => {
     const percent = statPercent(label, fighter);
     return `<div class="mini-stat"><span>${label}</span><b>${Math.round(percent)}</b><i><em style="width:${percent}%"></em></i></div>`;
   }).join("");
 }
 
 function selectFighter(fighterId) {
+  const exists = FIGHTERS.some((fighter) => fighter.id === fighterId);
+  if (!exists) return;
   selectedFighterId = fighterId;
+  ui.confirmButton.disabled = false;
+  ui.confirmButton.textContent = "Confirm Fighter";
+  ui.confirmButton.classList.add("confirm-ready");
   renderCharacterCards();
   updateFighterPreview();
+}
+
+function hideMainScreens() {
+  ui.titleScreen.classList.add("hidden");
+  ui.characterSelect.classList.add("hidden");
+  ui.matchOptions.classList.add("hidden");
+  ui.vsOverlay.classList.add("hidden");
 }
 
 function updateFighterPreview() {
@@ -513,33 +558,94 @@ function updateFighterPreview() {
   `;
 }
 
+function showTitleScreen() {
+  setPaused(false);
+  keys.clear();
+  gameState = "title";
+  pendingStart = null;
+  finalClashActive = false;
+  ui.finalClashOverlay.classList.add("hidden");
+  ui.endOverlay.classList.add("hidden");
+  hideMainScreens();
+  ui.titleScreen.classList.remove("hidden");
+  ui.timerDisplay.classList.add("hidden");
+  ui.roundStatus.textContent = "Press Start";
+  ui.comboText.textContent = "";
+}
+
 function showCharacterSelect() {
   setPaused(false);
   keys.clear();
   gameState = "select";
   pendingStart = null;
   introTimer = 0;
-  ui.titleScreen.classList.add("hidden");
+  finalClashActive = false;
+  ui.finalClashOverlay.classList.add("hidden");
   ui.endOverlay.classList.add("hidden");
-  ui.vsOverlay.classList.add("hidden");
+  hideMainScreens();
   ui.characterSelect.classList.remove("hidden");
   ui.roundStatus.textContent = "Choose Fighter";
   ui.comboText.textContent = "";
+  ui.timerDisplay.classList.add("hidden");
+  ui.confirmButton.disabled = !selectedFighterId;
+  ui.confirmButton.classList.toggle("confirm-ready", Boolean(selectedFighterId));
+  ui.confirmButton.textContent = selectedFighterId ? "Confirm Fighter" : "Select a Fighter";
   renderCharacterCards();
   updateFighterPreview();
 }
 
 function confirmSelection() {
+  if (!selectedFighterId) {
+    ui.roundStatus.textContent = "Select a Fighter First";
+    return;
+  }
   aiDifficulty = ui.difficultySelect.value || "normal";
-  resetGame(selectedFighterId);
+  showMatchOptions();
 }
 
-function resetGame(selectedFighterIdToUse = selectedFighterId, fixedEnemyId = null) {
+function showMatchOptions() {
+  const playerData = normalizeFighterData(FIGHTERS.find((fighter) => fighter.id === selectedFighterId) || FIGHTERS[0]);
+  const rivalData = chooseEnemyData(playerData.id);
+  lastEnemyId = rivalData.id;
+  hideMainScreens();
+  ui.endOverlay.classList.add("hidden");
+  ui.matchOptions.classList.remove("hidden");
+  ui.matchupSummary.textContent = `${playerData.name} vs ${rivalData.name}`;
+  gameState = "options";
+  updateMatchTypeButtons();
+}
+
+function chooseMatchType(type) {
+  selectedMatchType = type === "untimed" ? "untimed" : "timed";
+  updateMatchTypeButtons();
+}
+
+function updateMatchTypeButtons() {
+  const timed = selectedMatchType === "timed";
+  ui.timedMatchButton.classList.toggle("selected", timed);
+  ui.untimedMatchButton.classList.toggle("selected", !timed);
+  ui.timedMatchButton.setAttribute("aria-pressed", String(timed));
+  ui.untimedMatchButton.setAttribute("aria-pressed", String(!timed));
+}
+
+function chooseEnemyData(playerId, fixedEnemyId = null) {
+  const normalized = FIGHTERS.map(normalizeFighterData);
+  if (fixedEnemyId) {
+    const fixed = normalized.find((fighter) => fighter.id === fixedEnemyId && fighter.id !== playerId);
+    if (fixed) return fixed;
+  }
+  const rivals = normalized.filter((fighter) => fighter.id !== playerId);
+  return normalizeFighterData(rivals[Math.floor(Math.random() * rivals.length)] || normalized[1] || SAFE_FIGHTER);
+}
+
+function beginVsScreen() {
+  if (!selectedFighterId) return showCharacterSelect();
+  resetGame(selectedFighterId, lastEnemyId || null);
+}
+
+function resetGame(selectedFighterIdToUse = selectedFighterId || "spirit-brawler", fixedEnemyId = null) {
   const playerData = normalizeFighterData(FIGHTERS.find((fighter) => fighter.id === selectedFighterIdToUse) || FIGHTERS[0]);
-  const rivals = FIGHTERS.map(normalizeFighterData).filter((fighter) => fighter.id !== playerData.id);
-  const enemyData = normalizeFighterData(
-    fixedEnemyId ? FIGHTERS.find((fighter) => fighter.id === fixedEnemyId) : rivals[Math.floor(Math.random() * rivals.length)] || FIGHTERS[1] || SAFE_FIGHTER
-  );
+  const enemyData = chooseEnemyData(playerData.id, fixedEnemyId);
 
   player = createFighter(playerData, 260, 1, true);
   enemy = createFighter(enemyData, 700, -1, false);
@@ -553,17 +659,29 @@ function resetGame(selectedFighterIdToUse = selectedFighterId, fixedEnemyId = nu
   shake = 0;
   screenFlash = 0;
   keys.clear();
+  matchTimeRemaining = ROUND_TIME_SECONDS;
+  finalClashActive = false;
+  finalClashTriggered = false;
+  finalClashResolved = false;
+  playerClashPower = 0;
+  enemyClashPower = 0;
+  clashTapWindowStart = 0;
+  clashTapCount = 0;
+  ui.finalClashOverlay.classList.add("hidden");
+  updateClashUI();
   pendingStart = { playerName: player.name, enemyName: enemy.name };
   introTimer = 1.7;
   gameState = "intro";
   setPaused(false);
   ui.endOverlay.classList.add("hidden");
-  ui.titleScreen.classList.add("hidden");
-  ui.characterSelect.classList.add("hidden");
+  hideMainScreens();
   ui.vsPlayer.textContent = player.name;
   ui.vsEnemy.textContent = enemy.name;
   ui.vsOverlay.classList.remove("hidden");
-  ui.roundStatus.textContent = "VS Intro";
+  ui.roundStatus.textContent = selectedMatchType === "timed" ? `VS Intro • ${ROUND_TIME_SECONDS}s Timed` : "VS Intro • Untimed";
+  ui.timerDisplay.classList.toggle("hidden", selectedMatchType !== "timed");
+  ui.timerDisplay.classList.remove("danger");
+  ui.timerDisplay.textContent = String(ROUND_TIME_SECONDS);
   addFloatingText(`${playerData.specialName} ready at 100%`, canvas.width / 2, 92, player.colors.suit, 22, 1.2);
   updateUI();
 }
@@ -572,7 +690,7 @@ function startIntroFight() {
   if (!pendingStart) return;
   gameState = "playing";
   ui.vsOverlay.classList.add("hidden");
-  ui.roundStatus.textContent = `${player.name} vs ${enemy.name}`;
+  ui.roundStatus.textContent = selectedMatchType === "timed" ? `${player.name} vs ${enemy.name} • Timed` : `${player.name} vs ${enemy.name} • Untimed`;
   pendingStart = null;
 }
 
@@ -711,11 +829,118 @@ function update(dt) {
   updateAI(dt);
   updateFighter(player, enemy, dt);
   updateFighter(enemy, player, dt);
+  updateTimedMatch(dt);
   updateEffects(dt);
   sanitizeFighter(player, 260);
   sanitizeFighter(enemy, 700);
   checkWinner();
   updateUI();
+}
+
+
+function updateTimedMatch(dt) {
+  if (selectedMatchType !== "timed" || gameState !== "playing") return;
+  matchTimeRemaining = clampNumber(matchTimeRemaining - dt, 0, ROUND_TIME_SECONDS, ROUND_TIME_SECONDS);
+  if (!finalClashTriggered && matchTimeRemaining <= FINAL_CLASH_SECONDS) startFinalClash();
+  if (finalClashActive) updateFinalClash(dt);
+  if (matchTimeRemaining <= 0) {
+    if (finalClashActive && !finalClashResolved) resolveFinalClash();
+    decideTimedWinner();
+  }
+}
+
+function startFinalClash() {
+  finalClashTriggered = true;
+  finalClashActive = true;
+  finalClashResolved = false;
+  playerClashPower = 0;
+  enemyClashPower = 0;
+  clashTapWindowStart = performance.now();
+  clashTapCount = 0;
+  ui.finalClashOverlay.classList.remove("hidden");
+  ui.roundStatus.textContent = "FINAL CLASH!";
+  screenFlash = 0.5;
+  shake = Math.max(shake, 18);
+  addFloatingText("FINAL CLASH!", canvas.width / 2, 110, "#fff1a8", 44, 1.2);
+  addSpeedLines(canvas.width / 2, 250, 1, 34, "#fff1a8");
+  addSpeedLines(canvas.width / 2, 250, -1, 34, "#ff4d76");
+  updateClashUI();
+}
+
+function updateFinalClash(dt) {
+  const difficulty = aiDifficulty === "hard" ? 1.2 : aiDifficulty === "easy" ? 0.78 : 1;
+  const staminaRatio = enemy.stamina / Math.max(1, enemy.maxStamina);
+  const healthBonus = enemy.health < enemy.maxHealth * 0.35 ? 1.08 : 1;
+  const type = enemy.fighterData.specialType;
+  const typeRate = type === "lightning" ? 14 : type === "clinch" ? 8.5 : type === "reversal" ? (enemy.blocking ? 14 : 10.5) : type === "gravity" ? 10 : 11.5;
+  enemyClashPower = clampNumber(enemyClashPower + typeRate * difficulty * (0.72 + staminaRatio * 0.56) * healthBonus * dt, 0, 100, 0);
+  if (player.gravityTimer > 0 || enemy.fighterData.specialType === "gravity") playerClashPower = clampNumber(playerClashPower - 2.5 * dt, 0, 100, 0);
+  if (Math.random() < 0.42) {
+    effects.push({ kind: "particle", x: canvas.width / 2 + (Math.random() - 0.5) * 520, y: 140 + Math.random() * 240, vx: (Math.random() - 0.5) * 120, vy: -40 - Math.random() * 80, radius: 3 + Math.random() * 6, life: 0.42, maxLife: 0.42, color: Math.random() < 0.5 ? player.colors.suit : enemy.colors.suit });
+  }
+  updateClashUI();
+}
+
+function handleClashTap() {
+  if (!finalClashActive || gameState !== "playing") return;
+  const now = performance.now();
+  if (now - clashTapWindowStart >= 1000) {
+    clashTapWindowStart = now;
+    clashTapCount = 0;
+  }
+  if (clashTapCount >= MAX_CLASH_TAPS_PER_SECOND) return;
+  clashTapCount += 1;
+  const playerType = player.fighterData.specialType;
+  const typeGain = playerType === "lightning" ? 3.2 : playerType === "clinch" ? 2.15 : playerType === "gravity" ? 2.4 : 2.75;
+  const staminaGain = 0.72 + (player.stamina / Math.max(1, player.maxStamina)) * 0.48;
+  const gravityPenalty = enemy.fighterData.specialType === "gravity" || player.gravityTimer > 0 ? 0.84 : 1;
+  playerClashPower = clampNumber(playerClashPower + typeGain * staminaGain * gravityPenalty, 0, 100, 0);
+  addAuraBurst(player.x, player.y - 82, player.colors.suit, 4);
+  updateClashUI();
+}
+
+function updateClashUI() {
+  const p = clampNumber(playerClashPower, 0, 100, 0);
+  const e = clampNumber(enemyClashPower, 0, 100, 0);
+  ui.playerClashMeter.style.width = `${p}%`;
+  ui.enemyClashMeter.style.width = `${e}%`;
+  ui.playerClashText.textContent = `${Math.round(p)}%`;
+  ui.enemyClashText.textContent = `${Math.round(e)}%`;
+}
+
+function resolveFinalClash() {
+  finalClashResolved = true;
+  finalClashActive = false;
+  ui.finalClashOverlay.classList.add("hidden");
+  const diff = playerClashPower - enemyClashPower;
+  if (Math.abs(diff) < 8) {
+    player.vx = -player.facing * 260;
+    enemy.vx = -enemy.facing * 260;
+    addFloatingText("CLASH DRAW!", canvas.width / 2, 138, "#eef4ff", 34, 1.1);
+    shake = Math.max(shake, 16);
+    return;
+  }
+  const attacker = diff > 0 ? player : enemy;
+  const defender = diff > 0 ? enemy : player;
+  const impactBonus = attacker.fighterData.specialType === "clinch" ? 4 : attacker.fighterData.specialType === "roundhouse" ? 5 : attacker.fighterData.specialType === "lightning" ? 1 : 2;
+  const damage = clampNumber(10 + Math.abs(diff) * 0.14 + impactBonus, 10, 25, 14);
+  defender.health = clampNumber(defender.health - damage, 0, defender.maxHealth, defender.maxHealth);
+  defender.vx = attacker.facing * (280 + damage * 11);
+  defender.knockbackTimer = 0.42;
+  defender.hitReactTimer = 0.32;
+  addFloatingText(`${attacker.name} FINAL COMBO!`, canvas.width / 2, 132, attacker.colors.suit, 30, 1.25);
+  addFloatingText(`-${Math.ceil(damage)}`, defender.x, defender.y - 150, "#fff1a8", 26, 1);
+  addImpactFlash(defender.x, defender.y - 86, "special", false, attacker.colors.suit);
+  addAuraBurst(attacker.x, attacker.y - 80, attacker.colors.suit, 22);
+  screenFlash = 0.55;
+  shake = Math.max(shake, 26);
+}
+
+function decideTimedWinner() {
+  if (gameState !== "playing") return;
+  const diff = player.health - enemy.health;
+  if (Math.abs(diff) <= DRAW_HEALTH_MARGIN) endMatch(null, "Draw");
+  else endMatch(diff > 0 ? player : enemy, "Won by Decision");
 }
 
 function handlePlayerInput(dt) {
@@ -1109,16 +1334,35 @@ function updateEffects(dt) {
 }
 
 function checkWinner() {
-  if (player.health <= 0 || enemy.health <= 0) {
-    gameState = "ended";
-    const playerWon = enemy.health <= 0;
-    ui.endTitle.textContent = playerWon ? "Victory!" : "Defeat";
-    const winner = playerWon ? player.name : enemy.name;
-    const loser = playerWon ? enemy.name : player.name;
-    ui.endMessage.textContent = `${winner} defeats ${loser}. Rematch instantly, restart the same pairing, or return to character select.`;
-    ui.roundStatus.textContent = playerWon ? `${player.name} Wins` : `${enemy.name} Wins`;
-    ui.endOverlay.classList.remove("hidden");
+  if (gameState !== "playing") return;
+  if (player.health <= 0 && enemy.health <= 0) {
+    endMatch(null, "Draw");
+  } else if (enemy.health <= 0) {
+    endMatch(player, "Won by KO");
+  } else if (player.health <= 0) {
+    endMatch(enemy, "Won by KO");
   }
+}
+
+function endMatch(winner, resultType) {
+  gameState = "ended";
+  finalClashActive = false;
+  ui.finalClashOverlay.classList.add("hidden");
+  ui.timerDisplay.classList.toggle("hidden", selectedMatchType !== "timed");
+  ui.timerDisplay.classList.remove("danger");
+  if (!winner || resultType === "Draw") {
+    ui.endTitle.textContent = "Draw";
+    ui.endMessage.textContent = `Draw. Both fighters were nearly even. Rematch, restart the same pairing, or return to character select.`;
+    ui.roundStatus.textContent = "Draw";
+  } else {
+    const playerWon = winner === player;
+    const loser = playerWon ? enemy : player;
+    ui.endTitle.textContent = playerWon ? "Victory!" : "Defeat";
+    ui.endMessage.textContent = `${winner.name} defeats ${loser.name}. ${resultType}. Rematch instantly, restart the same pairing, or return to character select.`;
+    ui.roundStatus.textContent = `${winner.name} Wins`;
+  }
+  ui.endOverlay.classList.remove("hidden");
+  keys.clear();
 }
 
 function updateUI() {
@@ -1134,6 +1378,12 @@ function updateUI() {
   setBar(ui.enemyHealth, ui.enemyHealthText, enemy.health, enemy.maxHealth, false);
   setBar(ui.enemyStamina, ui.enemyStaminaText, enemy.stamina, enemy.maxStamina, false);
   setBar(ui.enemySpecial, ui.enemySpecialText, enemy.special, enemy.maxSpecial, true);
+  const showTimer = selectedMatchType === "timed" && ["intro", "playing", "ended"].includes(gameState);
+  ui.timerDisplay.classList.toggle("hidden", !showTimer);
+  if (showTimer) {
+    ui.timerDisplay.textContent = String(Math.ceil(matchTimeRemaining));
+    ui.timerDisplay.classList.toggle("danger", matchTimeRemaining <= FINAL_CLASH_SECONDS && gameState === "playing");
+  }
 }
 
 function setBar(bar, label, value, max, percentLabel) {
@@ -1547,6 +1797,11 @@ window.addEventListener("keydown", (event) => {
     togglePause();
     return;
   }
+  if (key === " ") {
+    event.preventDefault();
+    if (!event.repeat) handleClashTap();
+    return;
+  }
   keys.add(key);
   if (["a", "d", "w", "j", "k", "l", "i", "shift"].includes(key)) event.preventDefault();
   if (gameState !== "playing") return;
@@ -1562,9 +1817,14 @@ window.addEventListener("keyup", (event) => {
 });
 
 ui.startButton.addEventListener("click", showCharacterSelect);
+ui.selectBackButton.addEventListener("click", showTitleScreen);
 ui.helpButton.addEventListener("click", () => ui.helpPanel.classList.toggle("hidden"));
 ui.randomButton.addEventListener("click", () => selectFighter(FIGHTERS[Math.floor(Math.random() * FIGHTERS.length)].id));
 ui.confirmButton.addEventListener("click", confirmSelection);
+ui.timedMatchButton.addEventListener("click", () => chooseMatchType("timed"));
+ui.untimedMatchButton.addEventListener("click", () => chooseMatchType("untimed"));
+ui.optionsBackButton.addEventListener("click", showCharacterSelect);
+ui.beginVsButton.addEventListener("click", beginVsScreen);
 ui.restartButton.addEventListener("click", showCharacterSelect);
 ui.rematchButton.addEventListener("click", rematch);
 ui.quickRestartButton.addEventListener("click", () => resetGame(lastPlayerId || selectedFighterId, lastEnemyId || null));
