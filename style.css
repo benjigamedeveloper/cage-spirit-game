@@ -18,7 +18,10 @@ body {
   min-height: 100vh;
   display: grid;
   place-items: center;
-  background: radial-gradient(circle at 50% 0%, #24315d 0%, var(--bg) 55%, #02030a 100%);
+  background:
+    radial-gradient(circle at 50% 0%, rgba(104, 247, 255, 0.18) 0%, transparent 28%),
+    radial-gradient(circle at 15% 20%, rgba(255, 77, 118, 0.16), transparent 26%),
+    linear-gradient(135deg, #04050d 0%, var(--bg) 48%, #02030a 100%);
   color: var(--text);
   font-family: "Trebuchet MS", Arial, sans-serif;
 }
@@ -27,6 +30,19 @@ body {
   position: relative;
   width: min(100vw, 1040px);
   padding: 16px;
+  isolation: isolate;
+}
+
+.game-shell::before {
+  content: "";
+  position: absolute;
+  inset: 8px;
+  z-index: -1;
+  border-radius: 28px;
+  background:
+    linear-gradient(115deg, rgba(104, 247, 255, 0.14), transparent 35%, rgba(255, 77, 118, 0.12)),
+    repeating-linear-gradient(60deg, rgba(255, 255, 255, 0.035) 0 2px, transparent 2px 18px);
+  filter: blur(0.2px);
 }
 
 .hud {
@@ -42,15 +58,31 @@ body {
 .controls-guide,
 .title-card,
 .end-card {
-  border: 1px solid rgba(104, 247, 255, 0.28);
-  background: var(--panel);
-  box-shadow: 0 0 24px rgba(104, 247, 255, 0.12), inset 0 0 20px rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(104, 247, 255, 0.34);
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.07), transparent 40%),
+    var(--panel);
+  box-shadow: 0 0 24px rgba(104, 247, 255, 0.16), inset 0 0 20px rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(6px);
 }
 
 .fighter-panel {
   padding: 12px;
   border-radius: 14px;
+  position: relative;
+  overflow: hidden;
+}
+
+.fighter-panel::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(90deg, rgba(104, 247, 255, 0.12), transparent 32%);
+}
+
+.enemy-panel::after {
+  background: linear-gradient(270deg, rgba(255, 77, 118, 0.13), transparent 32%);
 }
 
 .fighter-panel h2 {
@@ -76,9 +108,18 @@ body {
 .bar {
   height: 14px;
   overflow: hidden;
+  position: relative;
   border: 1px solid rgba(238, 244, 255, 0.18);
   border-radius: 999px;
   background: rgba(0, 0, 0, 0.35);
+}
+
+.bar::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.22), transparent);
+  mix-blend-mode: screen;
 }
 
 .fill {
@@ -99,6 +140,7 @@ body {
 .special-fill {
   width: 0%;
   background: linear-gradient(90deg, #ffe45e, #ff7bff, #68f7ff);
+  box-shadow: 0 0 12px rgba(247, 216, 74, 0.65);
 }
 
 .round-panel {
@@ -128,10 +170,13 @@ body {
   display: block;
   width: 100%;
   max-height: 70vh;
-  border: 2px solid rgba(104, 247, 255, 0.45);
+  border: 2px solid rgba(104, 247, 255, 0.55);
   border-radius: 18px;
   background: #070915;
-  box-shadow: 0 22px 60px rgba(0, 0, 0, 0.5), 0 0 36px rgba(104, 247, 255, 0.2);
+  box-shadow:
+    0 22px 60px rgba(0, 0, 0, 0.5),
+    0 0 36px rgba(104, 247, 255, 0.24),
+    inset 0 0 32px rgba(255, 77, 118, 0.12);
 }
 
 .controls-guide {
@@ -158,7 +203,10 @@ body {
   display: grid;
   place-items: center;
   padding: 20px;
-  background: radial-gradient(circle, rgba(25, 35, 70, 0.72), rgba(2, 3, 10, 0.94));
+  background:
+    radial-gradient(circle at 50% 34%, rgba(104, 247, 255, 0.2), transparent 24%),
+    radial-gradient(circle, rgba(25, 35, 70, 0.78), rgba(2, 3, 10, 0.95)),
+    repeating-linear-gradient(60deg, rgba(104, 247, 255, 0.08) 0 2px, transparent 2px 24px);
 }
 
 .title-card,
@@ -167,6 +215,18 @@ body {
   padding: 36px;
   border-radius: 24px;
   text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.title-card::before,
+.end-card::before {
+  content: "";
+  position: absolute;
+  inset: -70px -40px auto;
+  height: 150px;
+  background: linear-gradient(90deg, transparent, rgba(104, 247, 255, 0.18), rgba(255, 77, 118, 0.18), transparent);
+  transform: rotate(-8deg);
 }
 
 .eyebrow {
@@ -202,7 +262,7 @@ h1 {
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  box-shadow: 0 0 22px rgba(104, 247, 255, 0.45);
+  box-shadow: 0 0 22px rgba(104, 247, 255, 0.45), 0 8px 0 rgba(0, 0, 0, 0.28);
 }
 
 .primary-button:hover,
@@ -227,4 +287,19 @@ h1 {
   .enemy-panel h2 {
     text-align: left;
   }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .primary-button {
+    transition: transform 150ms ease, box-shadow 150ms ease;
+  }
+
+  .combo-text {
+    animation: spiritPulse 900ms infinite alternate;
+  }
+}
+
+@keyframes spiritPulse {
+  from { transform: scale(1); }
+  to { transform: scale(1.05); }
 }
