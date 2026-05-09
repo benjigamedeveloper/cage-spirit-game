@@ -17,6 +17,7 @@ const ui = {
   selectBackButton: document.getElementById("selectBackButton"),
   randomButton: document.getElementById("randomButton"),
   confirmButton: document.getElementById("confirmButton"),
+  confirmHint: document.getElementById("confirmHint"),
   difficultySelect: document.getElementById("difficultySelect"),
   matchOptions: document.getElementById("matchOptions"),
   matchupSummary: document.getElementById("matchupSummary"),
@@ -496,7 +497,7 @@ function renderCharacterCards() {
       <p class="ability-desc"><strong>Strengths:</strong> ${fighter.strengths.join(", ")}</p>
       <p class="ability-desc"><strong>Weaknesses:</strong> ${fighter.weaknesses.join(", ")}</p>
       <p class="ability-desc">${fighter.specialDescription}</p>
-      <span class="choose-label">${fighter.id === selectedFighterId ? "Selected" : "Select Fighter"}</span>
+      <span class="choose-label">${fighter.id === selectedFighterId ? "Selected" : "Select"}</span>
     `;
     card.addEventListener("click", () => selectFighter(fighter.id));
     ui.fighterCards.appendChild(card);
@@ -516,15 +517,26 @@ function buildStatBars(fighter) {
   }).join("");
 }
 
+function setConfirmState() {
+  const selected = selectedFighterId ? normalizeFighterData(FIGHTERS.find((fighter) => fighter.id === selectedFighterId) || FIGHTERS[0]) : null;
+  ui.confirmButton.disabled = !selected;
+  ui.confirmButton.textContent = selected ? "Confirm Fighter" : "Choose a Fighter First";
+  ui.confirmButton.classList.toggle("confirm-ready", Boolean(selected));
+  if (ui.confirmHint) {
+    ui.confirmHint.textContent = selected
+      ? `${selected.name} selected. Press Confirm Fighter to choose match type.`
+      : "Pick a fighter card to unlock the next step.";
+  }
+}
+
 function selectFighter(fighterId) {
   const exists = FIGHTERS.some((fighter) => fighter.id === fighterId);
   if (!exists) return;
   selectedFighterId = fighterId;
-  ui.confirmButton.disabled = false;
-  ui.confirmButton.textContent = "Confirm Fighter";
-  ui.confirmButton.classList.add("confirm-ready");
+  setConfirmState();
   renderCharacterCards();
   updateFighterPreview();
+  ui.confirmButton.scrollIntoView({ behavior: "smooth", block: "nearest" });
 }
 
 function hideMainScreens() {
@@ -535,6 +547,18 @@ function hideMainScreens() {
 }
 
 function updateFighterPreview() {
+  if (!selectedFighterId) {
+    const sample = normalizeFighterData(FIGHTERS[0]);
+    ui.fighterPreview.style.setProperty("--card-accent", sample.colors.suit);
+    ui.fighterPreview.innerHTML = `
+      <p class="eyebrow">Pick a Fighter</p>
+      <h3>No fighter selected yet</h3>
+      <p class="preview-note">Click any fighter card to show their OVR rating, special move, strengths, weaknesses, and stat bars here.</p>
+      <div class="empty-preview-callout">1. Pick a fighter card<br>2. Check the preview<br>3. Press Confirm Fighter</div>
+    `;
+    return;
+  }
+
   const fighter = normalizeFighterData(FIGHTERS.find((item) => item.id === selectedFighterId) || FIGHTERS[0]);
   const rivals = FIGHTERS.map(normalizeFighterData).filter((item) => item.id !== fighter.id);
   const previewRival = normalizeFighterData(rivals[0] || FIGHTERS[1] || SAFE_FIGHTER);
@@ -542,19 +566,20 @@ function updateFighterPreview() {
   ui.fighterPreview.style.setProperty("--rival-accent", previewRival.colors.suit);
   ui.fighterPreview.innerHTML = `
     <p class="eyebrow">Selected Fighter</p>
+    <h3>${fighter.name} <span class="preview-ovr">${fighter.ratings.ovr} OVR</span></h3>
     <div class="preview-versus">
       <div><strong>${fighter.name}</strong><span>${fighter.role}</span></div>
       <b>VS</b>
       <div><strong>Random Rival</strong><span>Preview: ${previewRival.name}</span></div>
     </div>
-    <h3>${fighter.specialName}</h3>
+    <h4>${fighter.specialName}</h4>
     <p>${fighter.specialDescription}</p>
     <div class="stat-bars">${buildStatBars(fighter)}</div>
     <div class="trait-grid">
       <div><strong>Strengths</strong><ul>${fighter.strengths.map((item) => `<li>${item}</li>`).join("")}</ul></div>
       <div><strong>Weaknesses</strong><ul>${fighter.weaknesses.map((item) => `<li>${item}</li>`).join("")}</ul></div>
     </div>
-    <p class="preview-note">AI behavior: ${fighter.aiBehavior}. Difficulty: ${fighter.difficulty}.</p>
+    <p class="preview-note">AI behavior: ${fighter.aiBehavior}. Difficulty: ${fighter.difficulty}. Press Confirm Fighter when ready.</p>
   `;
 }
 
@@ -587,16 +612,15 @@ function showCharacterSelect() {
   ui.roundStatus.textContent = "Choose Fighter";
   ui.comboText.textContent = "";
   ui.timerDisplay.classList.add("hidden");
-  ui.confirmButton.disabled = !selectedFighterId;
-  ui.confirmButton.classList.toggle("confirm-ready", Boolean(selectedFighterId));
-  ui.confirmButton.textContent = selectedFighterId ? "Confirm Fighter" : "Select a Fighter";
+  setConfirmState();
   renderCharacterCards();
   updateFighterPreview();
 }
 
 function confirmSelection() {
   if (!selectedFighterId) {
-    ui.roundStatus.textContent = "Select a Fighter First";
+    ui.roundStatus.textContent = "Choose a Fighter First";
+    setConfirmState();
     return;
   }
   aiDifficulty = ui.difficultySelect.value || "normal";
@@ -1819,7 +1843,11 @@ window.addEventListener("keyup", (event) => {
 ui.startButton.addEventListener("click", showCharacterSelect);
 ui.selectBackButton.addEventListener("click", showTitleScreen);
 ui.helpButton.addEventListener("click", () => ui.helpPanel.classList.toggle("hidden"));
-ui.randomButton.addEventListener("click", () => selectFighter(FIGHTERS[Math.floor(Math.random() * FIGHTERS.length)].id));
+ui.randomButton.addEventListener("click", () => {
+  const randomFighter = FIGHTERS[Math.floor(Math.random() * FIGHTERS.length)];
+  selectFighter(randomFighter.id);
+  ui.roundStatus.textContent = `${normalizeFighterData(randomFighter).name} selected randomly`;
+});
 ui.confirmButton.addEventListener("click", confirmSelection);
 ui.timedMatchButton.addEventListener("click", () => chooseMatchType("timed"));
 ui.untimedMatchButton.addEventListener("click", () => chooseMatchType("untimed"));

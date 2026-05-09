@@ -28,8 +28,8 @@
     <section id="characterSelect" class="character-select hidden" aria-label="Choose your fighter">
       <div class="select-header">
         <p class="eyebrow">Original Fighter Roster</p>
-        <h2>Choose Your Cage Spirit</h2>
-        <p>Pick a Fighter Card, confirm your fighter, then choose Timed or Untimed match rules.</p>
+        <h2>Choose Your Fighter</h2>
+        <p class="select-instruction">Select a fighter card, then press Confirm Fighter.</p>
         <div class="select-actions">
           <label for="difficultySelect">AI Difficulty</label>
           <select id="difficultySelect" aria-label="AI difficulty">
@@ -39,12 +39,15 @@
           </select>
           <button id="selectBackButton" class="primary-button mini-button secondary-button" type="button">Back</button>
           <button id="randomButton" class="primary-button mini-button" type="button">Random Fighter</button>
-          <button id="confirmButton" class="primary-button mini-button" type="button" disabled>Confirm Fighter</button>
         </div>
       </div>
       <div class="select-layout">
         <div id="fighterCards" class="fighter-cards"></div>
         <aside id="fighterPreview" class="fighter-preview" aria-live="polite"></aside>
+      </div>
+      <div class="confirm-panel" aria-live="polite">
+        <p id="confirmHint">Pick a fighter card to unlock the next step.</p>
+        <button id="confirmButton" class="primary-button confirm-button" type="button" disabled>Choose a Fighter First</button>
       </div>
     </section>
 
@@ -67,7 +70,7 @@
         </div>
         <div class="match-options-actions">
           <button id="optionsBackButton" class="primary-button secondary-button" type="button">Back</button>
-          <button id="beginVsButton" class="primary-button" type="button">Show VS Screen</button>
+          <button id="beginVsButton" class="primary-button" type="button">Start VS Intro</button>
         </div>
       </div>
     </section>
@@ -135,7 +138,7 @@
     <div id="pauseOverlay" class="pause-overlay hidden">
       <div class="pause-card">
         <h2>PAUSED</h2>
-        <p>Fight paused. Press P or Resume to continue.</p>
+        <p>Fight paused. Press P or Resume to continue. Restart keeps the same matchup, or return to Character Select.</p>
         <div class="pause-actions">
           <button id="resumeButton" class="primary-button" type="button">Resume</button>
           <button id="pauseRestartButton" class="primary-button secondary-button" type="button">Restart Match</button>
