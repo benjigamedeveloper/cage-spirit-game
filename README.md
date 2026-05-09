@@ -9,8 +9,10 @@ No installs are required.
 1. Download or clone this folder.
 2. Open `index.html` directly in a modern browser, or publish the folder to GitHub Pages.
 3. Click **Choose Fighter**.
-4. Pick a Fighter Card, choose AI difficulty, and press **Confirm Fighter**.
-5. Choose **Timed Match** or **Untimed Match**, then press **Show VS Screen**.
+4. Pick a Fighter Card. The selected card glows and its label changes from **Select** to **Selected**.
+5. Use the preview panel to review OVR, special move, strengths, weaknesses, and stat bars.
+6. Press the large visible **Confirm Fighter** button. It reads **Choose a Fighter First** until a card is selected.
+7. Choose **Timed Match** or **Untimed Match**, then press **Start VS Intro**.
 
 The game does **not** require npm, Node, React, Phaser, external libraries, a bundler, or a setup step.
 
@@ -103,9 +105,9 @@ All fighters are original characters made for Cage Spirit. Character select now 
 ## Current Features
 
 - Dark tournament title screen and controls/help panel.
-- Fighting-game-style character select with selected highlight, active confirm button only after selection, random fighter button, AI preview, Fighter Card ratings, stat bars, strengths, weaknesses, roles, difficulty ratings, and special descriptions.
+- Fighting-game-style character select with a large **Choose Your Fighter** heading, clear instructions, selected-card glow, card label switching from **Select** to **Selected**, a selected fighter preview panel, a Random Fighter button, AI difficulty, and a large visible confirm panel that says **Choose a Fighter First** until a fighter is selected.
 - Six original fighters with unique stats, colors, AI behavior preferences, silhouettes, hair/gear details, and special behaviors.
-- Match Options screen with Timed and Untimed rules before the VS intro.
+- Match Options screen with clearly selected Timed and Untimed rules before the VS intro, followed by the **Start VS Intro** button.
 - VS intro before each match.
 - Dark cage arena with fence pattern, floor grid, overhead lights, glowing edges, crowd silhouettes, shadows, and cinematic impact effects.
 - Stable health, stamina, special, timer, and Final Clash bars that clamp to `0%`–`100%` and display exact current/max values.
