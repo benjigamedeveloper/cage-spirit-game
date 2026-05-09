@@ -57,6 +57,8 @@ body {
 .round-panel,
 .controls-guide,
 .title-card,
+.select-header,
+.fighter-card,
 .end-card {
   border: 1px solid rgba(104, 247, 255, 0.34);
   background:
@@ -196,6 +198,7 @@ body {
 }
 
 .title-screen,
+.character-select,
 .end-overlay {
   position: absolute;
   inset: 0;
@@ -210,7 +213,8 @@ body {
 }
 
 .title-card,
-.end-card {
+.end-card,
+.select-header {
   max-width: 560px;
   padding: 36px;
   border-radius: 24px;
@@ -220,7 +224,8 @@ body {
 }
 
 .title-card::before,
-.end-card::before {
+.end-card::before,
+.select-header::before {
   content: "";
   position: absolute;
   inset: -70px -40px auto;
@@ -270,6 +275,148 @@ h1 {
   transform: translateY(-2px) scale(1.02);
 }
 
+.character-select {
+  align-content: start;
+  gap: 16px;
+  overflow-y: auto;
+}
+
+.select-header {
+  width: min(960px, 100%);
+  padding: 22px 28px;
+  border-radius: 22px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.select-header h2 {
+  margin: 4px 0;
+  font-size: clamp(28px, 5vw, 46px);
+  text-transform: uppercase;
+}
+
+.select-header p:last-child {
+  margin: 8px auto 0;
+  max-width: 760px;
+  color: var(--muted);
+}
+
+.fighter-cards {
+  width: min(980px, 100%);
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 14px;
+  padding-bottom: 14px;
+}
+
+.fighter-card {
+  --card-accent: var(--accent);
+  --card-dark: #17203f;
+  position: relative;
+  overflow: hidden;
+  min-height: 430px;
+  padding: 16px;
+  border-radius: 20px;
+  border-color: color-mix(in srgb, var(--card-accent) 65%, transparent);
+  text-align: left;
+  cursor: pointer;
+}
+
+.fighter-card::before {
+  content: "";
+  position: absolute;
+  inset: -40px -20px auto;
+  height: 150px;
+  background: radial-gradient(circle, color-mix(in srgb, var(--card-accent) 42%, transparent), transparent 62%);
+  transform: rotate(-10deg);
+}
+
+.fighter-card:hover,
+.fighter-card:focus-visible {
+  transform: translateY(-4px);
+  box-shadow: 0 0 30px color-mix(in srgb, var(--card-accent) 42%, transparent), inset 0 0 20px rgba(255,255,255,0.08);
+  outline: 2px solid var(--card-accent);
+}
+
+.fighter-portrait {
+  height: 86px;
+  position: relative;
+  margin-bottom: 10px;
+  border-radius: 16px;
+  background:
+    radial-gradient(circle at 55% 35%, color-mix(in srgb, var(--card-accent) 42%, transparent), transparent 36%),
+    linear-gradient(135deg, var(--card-dark), rgba(0,0,0,0.35));
+}
+
+.fighter-portrait::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 10px;
+  width: 54px;
+  height: 72px;
+  border-radius: 28px 28px 12px 12px;
+  transform: translateX(-50%);
+  background: linear-gradient(var(--card-accent), var(--card-dark));
+  box-shadow: 0 0 24px var(--card-accent);
+}
+
+.fighter-card h3 {
+  position: relative;
+  margin: 0;
+  font-size: 23px;
+  text-transform: uppercase;
+}
+
+.fighter-style,
+.fighter-special {
+  position: relative;
+  color: var(--card-accent);
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 12px;
+}
+
+.fighter-desc,
+.ability-desc {
+  color: var(--muted);
+  line-height: 1.35;
+  font-size: 14px;
+}
+
+.stat-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin: 12px 0;
+}
+
+.stat-pill {
+  border: 1px solid rgba(238, 244, 255, 0.16);
+  border-radius: 999px;
+  padding: 6px 9px;
+  background: rgba(0,0,0,0.25);
+  font-size: 12px;
+}
+
+.stat-pill strong {
+  color: var(--text);
+}
+
+.choose-label {
+  display: block;
+  margin-top: 12px;
+  padding: 10px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--card-accent), #ffffff);
+  color: #06101f;
+  text-align: center;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
 .hidden {
   display: none;
 }
@@ -277,6 +424,10 @@ h1 {
 @media (max-width: 760px) {
   .hud {
     grid-template-columns: 1fr;
+  }
+
+  .character-select {
+    position: fixed;
   }
 
   .round-panel {
@@ -290,7 +441,8 @@ h1 {
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  .primary-button {
+  .primary-button,
+  .fighter-card {
     transition: transform 150ms ease, box-shadow 150ms ease;
   }
 

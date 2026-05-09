@@ -13,13 +13,22 @@
         <p class="eyebrow">Anime MMA Arcade Prototype</p>
         <h1>Cage Spirit</h1>
         <p class="tagline">Dash in, guard up, and unleash your spirit finisher inside the neon cage.</p>
-        <button id="startButton" class="primary-button">Start Fight</button>
+        <button id="startButton" class="primary-button">Choose Fighter</button>
       </div>
+    </section>
+
+    <section id="characterSelect" class="character-select hidden" aria-label="Choose your fighter">
+      <div class="select-header">
+        <p class="eyebrow">Original Fighter Roster</p>
+        <h2>Choose Your Cage Spirit</h2>
+        <p>Select one of five original anime MMA fighters. The AI will pick a different rival.</p>
+      </div>
+      <div id="fighterCards" class="fighter-cards"></div>
     </section>
 
     <section class="hud" aria-label="Fight status">
       <div class="fighter-panel player-panel">
-        <h2>Rin "Cage Spirit"</h2>
+        <h2 id="playerName">Choose Fighter</h2>
         <div class="bar-label"><span>Health</span><span id="playerHealthText">100</span></div>
         <div class="bar"><div id="playerHealth" class="fill health-fill"></div></div>
         <div class="bar-label"><span>Stamina</span><span id="playerStaminaText">100</span></div>
@@ -34,7 +43,7 @@
       </div>
 
       <div class="fighter-panel enemy-panel">
-        <h2>Kai "Iron Tempest"</h2>
+        <h2 id="enemyName">Awaiting Rival</h2>
         <div class="bar-label"><span>Health</span><span id="enemyHealthText">100</span></div>
         <div class="bar"><div id="enemyHealth" class="fill health-fill"></div></div>
         <div class="bar-label"><span>Stamina</span><span id="enemyStaminaText">100</span></div>
@@ -62,7 +71,7 @@
       <div class="end-card">
         <h2 id="endTitle">Fight Over</h2>
         <p id="endMessage">Great match!</p>
-        <button id="restartButton" class="primary-button">Restart Fight</button>
+        <button id="restartButton" class="primary-button">Choose Again</button>
       </div>
     </div>
   </main>
