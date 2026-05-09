@@ -1,42 +1,25 @@
 # Cage Spirit
 
-**Cage Spirit** is a beginner-friendly 2D browser game prototype about original anime-style MMA combat. It mixes side-view cage fighting, arcade attacks, stamina management, blocking, dashing, character selection, and flashy non-graphic impact effects.
+**Cage Spirit** is a polished, beginner-friendly anime MMA arcade fighting-game website built with only `index.html`, `style.css`, and vanilla `game.js`. It uses original anime-style fighters, non-graphic cinematic effects, stamina management, blocking, dashing, a pause system, a VS intro, and stable full matches that work directly on GitHub Pages.
 
 ## How to Run
 
 No installs are required.
 
 1. Download or clone this folder.
-2. Open `index.html` directly in any modern web browser.
+2. Open `index.html` directly in a modern browser, or publish the folder to GitHub Pages.
 3. Click **Choose Fighter**.
-4. Select one of the five original fighters to start the match.
+4. Pick a fighter, choose AI difficulty, and press **Start Fight**.
 
-The game uses only HTML, CSS, and vanilla JavaScript. It does not require npm, Node, React, Phaser, or external libraries.
+The game does **not** require npm, Node, React, Phaser, external libraries, a bundler, or a setup step.
 
-## How to Play
+## Match Flow
 
-Pick a fighter on the character select screen, then defeat the AI rival by reducing their health to 0 before they defeat you. The AI randomly chooses a different fighter from the roster, uses that fighter's stats, and can spend a full special meter on that fighter's unique special move.
+```text
+Title Screen → Character Select → VS Intro → Fight → Win/Lose Screen
+```
 
-Manage stamina carefully:
-
-- Punches, kicks, blocking, hopping, special attacks, and dashing cost stamina.
-- Stamina regenerates slowly, so repeated pressure can leave you unable to attack or dash.
-- When stamina is too low, the game shows a low-stamina warning instead of letting moves spam.
-- Blocking reduces damage and creates guard sparks, but taking too many blocked hits can cause a guard break.
-- Landing hits builds your special meter.
-- Specials require 100% meter, reset the meter to 0 after use, and are balanced around strong but non-instant-win damage.
-
-## Fighter Roster
-
-All fighters are original anime-style MMA characters created for Cage Spirit.
-
-| Fighter | Style | Theme | Stat Identity | Special |
-| --- | --- | --- | --- | --- |
-| **Spirit Brawler** | Balanced all-rounder | Blue/white energy | Balanced health, stamina, speed, punch, and kick damage | **Spirit Rush**: a fast, easy-to-use multi-hit rush combo with balanced damage and knockback. |
-| **Storm Boxer** | Fast striker | Yellow/lightning energy | High speed and fast punches, lower health, lower kick damage | **Lightning Step**: blinks through or behind the opponent with afterimages, then lands rapid punches. |
-| **Iron Wrestler** | Slow powerhouse grappler | Steel/grey energy | High health and damage, slow speed, higher stamina costs | **Titan Clinch**: if close, lands a heavy non-graphic slam-style impact with big knockback; if far, it becomes a weaker lunge. |
-| **Flame Kicker** | Kick-focused pressure fighter | Orange/red fire energy | Strong kicks, medium speed, medium health, weaker punches | **Inferno Roundhouse**: a powerful flaming roundhouse with a short-range shockwave. |
-| **Shadow Counter** | Defensive counter fighter | Purple/black shadow energy | Strong block, good stamina, medium-low direct damage | **Phantom Reversal**: counters hard if timed while the opponent attacks; mistimed use becomes a weaker shadow hit. |
+The end screen includes options to return to character select, rematch the same pairing, or restart the current match.
 
 ## Controls
 
@@ -52,6 +35,26 @@ All fighters are original anime-style MMA characters created for Cage Spirit.
 | `I` | Special attack when special meter is full |
 | `P` | Pause / resume the fight |
 
+### Pause Controls
+
+The fight can be paused with the visible **Pause** button or the `P` key. While paused, fighters, AI, timers, stamina regeneration, particles, and special effects stop. The pause overlay includes:
+
+- **Resume**
+- **Restart Match**
+- **Character Select**
+
+## How to Play
+
+Reduce the rival fighter's health to 0 before they defeat you.
+
+- Health, stamina, and special bars show exact values such as `85 / 100`.
+- Punches, kicks, hops, dashes, blocking, and specials cost stamina.
+- Stamina regenerates over time, but low stamina prevents move spam.
+- Blocking reduces damage and creates guard sparks, but repeated pressure can cause guard break.
+- Landing attacks builds special meter.
+- Specials require a full `100 / 100` special meter and reset to `0 / 100` after use.
+- No special instantly wins; stronger moves have range, timing, recovery, or stamina risks.
+
 ## Combo
 
 Land this sequence quickly to trigger a stronger finisher:
@@ -61,41 +64,57 @@ Punch, Punch, Kick
 J, J, K
 ```
 
-If the combo lands in time, the game shows combo text and automatically fires a stronger spirit combo finisher.
+## Difficulty Options
 
-## Current Prototype Features
+The character select screen includes three AI difficulty settings:
 
-- Title screen leading into a polished character selection screen.
-- Five original anime MMA fighters with unique stats, colors, style descriptions, special move names, and abilities.
-- Random AI fighter selection that avoids mirroring the player when possible.
-- Dark neon cage arena with fence pattern, arena lights, floor markings, and crowd silhouettes.
-- More detailed canvas fighters with heads, hair, face details, torsos, shorts, gloves/wraps, legs, shoes, color themes, aura effects, and style-specific body details.
-- Player versus active AI opponent that follows consistently, manages distance, blocks, backs up, dashes in, punches, kicks, and sometimes uses full-meter specials.
-- Health, stamina, and special meter UI that reflects each fighter's health/stamina maximums and special color theme.
-- Punch, kick, dash, hop, block, special attack, pause/resume, and combo finisher.
-- Improved dash with stamina cost, cooldown, speed lines, dust burst, and afterimages.
-- Slower stamina regeneration with clear low-stamina feedback.
-- Cinematic specials with aura charge-up, screen flash, speed lines, hit pause, themed impacts, camera shake, and move-name text.
-- Knockback, hit reactions, guard sparks, dust, aura particles, floating damage numbers, and screen shake.
-- Pause overlay with **Resume** and **Restart** buttons.
-- End-of-match overlay with a **Choose Again** button.
+- **Easy**: slower decisions and less pressure.
+- **Normal**: balanced arcade challenge.
+- **Hard**: faster decisions, stronger blocking, and more confident special usage.
+
+## Fighter Roster
+
+All fighters are original characters made for Cage Spirit.
+
+| Fighter | Role | Difficulty | Theme | Special |
+| --- | --- | --- | --- | --- |
+| **Spirit Brawler** | Balanced all-rounder | Easy | Blue/white spirit energy | **Spirit Rush**: a forward multi-hit anime MMA combo with reliable range, medium damage, and medium knockback. |
+| **Storm Boxer** | Speed striker | Medium | Yellow lightning energy | **Lightning Step**: dashes through or behind the opponent with lightning afterimages, then lands rapid punches. |
+| **Iron Wrestler** | Heavy grappler | Medium | Steel/grey energy | **Titan Clinch**: close-range clinch/slam-style impact with big knockback; too far becomes a weaker lunge. |
+| **Flame Kicker** | Kick pressure fighter | Medium | Orange/red fire energy | **Inferno Roundhouse**: flaming roundhouse kick with a short-range shockwave and strong visual impact. |
+| **Shadow Counter** | Defensive counter fighter | Hard | Purple/black shadow energy | **Phantom Reversal**: strong counter if the opponent is attacking; weaker shadow hit if mistimed. |
+| **Gravity Monk** | Control/tricky fighter | Hard | Violet/space gravity energy | **Heavy Field**: creates a temporary gravity zone that slows the opponent and raises their dash/attack stamina costs. |
+
+## Current Features
+
+- Dark tournament title screen and controls/help panel.
+- Fighting-game-style character select with selected highlight, random fighter button, AI preview, stat bars, strengths, weaknesses, roles, difficulty ratings, and special descriptions.
+- Six original fighters with unique stats, colors, AI behavior preferences, silhouettes, hair/gear details, and special behaviors.
+- VS intro before each match.
+- Dark cage arena with fence pattern, floor grid, overhead lights, glowing edges, crowd silhouettes, shadows, and cinematic impact effects.
+- Stable health, stamina, and special bars that clamp to `0%`–`100%` and display exact current/max values.
+- Safety checks for invalid fighter data, NaN values, arena bounds, health/stamina/special clamping, and effect cleanup.
+- Responsive movement, dash dust, afterimages, knockback, hit pause, guard sparks, combo counter, low-stamina warnings, and special-ready glow.
+- Kick animation extends the existing front leg only, avoiding extra limbs.
+- AI behaviors tuned per fighter: balanced, pressure, grappler, kicker, counter, and control.
+- Pause overlay with resume, restart, and character-select flow.
+- Win/lose screen with winner/loser summary, rematch, restart, and back-to-select actions.
 
 ## Beginner Editing Guide
 
 Open `game.js` and look near the top for:
 
-- `FIGHTERS` to edit the roster, fighter names, descriptions, stats, colors, special move names, and special ability descriptions.
-- `STATS` to edit shared movement, dash, hop, guard, arena, and gravity-style settings.
-- `ATTACKS` to edit shared punch, kick, combo, and special timing/range templates.
+- `FIGHTERS` to edit roster data, stats, colors, roles, strengths, weaknesses, special names, and AI behavior.
+- `STATS` to edit movement, dash, hop, guard, arena, and stamina settings.
+- `ATTACKS` to edit punch, kick, combo, and special timing/range templates.
 
-These values are grouped together so new developers can experiment without digging through the full game loop.
+Each fighter has clean data for id, name, role, difficulty, description, strengths, weaknesses, health, stamina, speed, damage, defense, dash cost, stamina regeneration, special, theme colors, and AI preference.
 
-## Ideas for Future Updates
+## Future Update Ideas
 
-- Add more combo routes and special move variants.
-- Add sound effects and music.
-- Add a training mode with input display.
+- Add sound effects and music toggles.
 - Add best-of-three rounds.
+- Add a training mode with hitboxes and input display.
 - Add mobile touch controls.
-- Replace shape fighters with sprite art or frame-by-frame animations.
-- Add more arenas, entrances, and anime-style victory poses.
+- Add more arenas and entrance animations.
+- Add more combo routes and tutorial missions.
