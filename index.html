@@ -16,7 +16,7 @@
         <h1>Cage Spirit</h1>
         <p class="tagline">Choose an original anime MMA fighter, manage stamina, and ignite cinematic non-graphic specials inside the neon cage.</p>
         <div class="title-actions">
-          <button id="startButton" class="primary-button">Choose Fighter</button>
+          <button id="startButton" class="primary-button" type="button">Choose Fighter</button>
           <button id="helpButton" class="primary-button secondary-button" type="button">Controls</button>
         </div>
         <div id="helpPanel" class="help-panel hidden">
@@ -29,7 +29,7 @@
       <div class="select-header">
         <p class="eyebrow">Original Fighter Roster</p>
         <h2>Choose Your Cage Spirit</h2>
-        <p>Pick a fighter, preview the AI rival, choose difficulty, then confirm the match.</p>
+        <p>Pick a Fighter Card, confirm your fighter, then choose Timed or Untimed match rules.</p>
         <div class="select-actions">
           <label for="difficultySelect">AI Difficulty</label>
           <select id="difficultySelect" aria-label="AI difficulty">
@@ -37,13 +37,38 @@
             <option value="normal" selected>Normal</option>
             <option value="hard">Hard</option>
           </select>
+          <button id="selectBackButton" class="primary-button mini-button secondary-button" type="button">Back</button>
           <button id="randomButton" class="primary-button mini-button" type="button">Random Fighter</button>
-          <button id="confirmButton" class="primary-button mini-button" type="button">Start Fight</button>
+          <button id="confirmButton" class="primary-button mini-button" type="button" disabled>Confirm Fighter</button>
         </div>
       </div>
       <div class="select-layout">
         <div id="fighterCards" class="fighter-cards"></div>
         <aside id="fighterPreview" class="fighter-preview" aria-live="polite"></aside>
+      </div>
+    </section>
+
+
+
+    <section id="matchOptions" class="match-options hidden" aria-label="Choose match options">
+      <div class="match-options-card">
+        <p class="eyebrow">Match Options</p>
+        <h2>Choose the Round Rules</h2>
+        <p id="matchupSummary" class="matchup-summary">Fighter vs Rival</p>
+        <div class="match-type-grid" role="radiogroup" aria-label="Match type">
+          <button id="timedMatchButton" class="match-type-card selected" type="button" data-match-type="timed" aria-pressed="true">
+            <strong>Timed Match</strong>
+            <span>75-second round, Final Clash in the last 10 seconds, decision if time expires.</span>
+          </button>
+          <button id="untimedMatchButton" class="match-type-card" type="button" data-match-type="untimed" aria-pressed="false">
+            <strong>Untimed Match</strong>
+            <span>No timer and no Final Clash. Fight until a KO.</span>
+          </button>
+        </div>
+        <div class="match-options-actions">
+          <button id="optionsBackButton" class="primary-button secondary-button" type="button">Back</button>
+          <button id="beginVsButton" class="primary-button" type="button">Show VS Screen</button>
+        </div>
       </div>
     </section>
 
@@ -59,6 +84,7 @@
       </div>
 
       <div class="round-panel">
+        <div id="timerDisplay" class="timer-display hidden">75</div>
         <div id="roundStatus">Press Start</div>
         <div id="comboText" class="combo-text"></div>
       </div>
@@ -88,6 +114,15 @@
       <span>P Pause</span>
       <span>J,J,K Combo</span>
     </section>
+
+    <div id="finalClashOverlay" class="final-clash-overlay hidden" aria-live="polite">
+      <div class="clash-card">
+        <h2>FINAL CLASH!</h2>
+        <p>Press SPACE repeatedly to build clash power</p>
+        <div class="clash-meter-row"><span>Player</span><div class="clash-meter"><i id="playerClashMeter"></i></div><b id="playerClashText">0%</b></div>
+        <div class="clash-meter-row"><span>Opponent</span><div class="clash-meter enemy-clash"><i id="enemyClashMeter"></i></div><b id="enemyClashText">0%</b></div>
+      </div>
+    </div>
 
     <div id="vsOverlay" class="vs-overlay hidden">
       <div class="vs-card">
