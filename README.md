@@ -8,11 +8,11 @@ No installs are required.
 
 1. Download or clone this folder.
 2. Open `index.html` directly in a modern browser, or publish the folder to GitHub Pages.
-3. Click **Choose Fighter**.
+3. Click **Start Game**.
 4. Pick a Fighter Card. The selected card glows and its label changes from **Select** to **Selected**.
 5. Use the preview panel to review OVR, special move, strengths, weaknesses, and stat bars.
-6. Press the large visible **Confirm Fighter** button. It reads **Choose a Fighter First** until a card is selected.
-7. Choose **Timed Match** or **Untimed Match**, then press **Start VS Intro**.
+6. Press the large visible **Confirm Fighter** button after choosing a card.
+7. Choose **Timed Match** or **Untimed Match**, then press **Start Fight**.
 
 The game does **not** require npm, Node, React, Phaser, external libraries, a bundler, or a setup step.
 
@@ -22,7 +22,7 @@ The game does **not** require npm, Node, React, Phaser, external libraries, a bu
 Title Screen → Character Select → Match Options → VS Screen → Fight → Win/Lose Screen
 ```
 
-The end screen includes options to return to character select, rematch the same pairing, or restart the current match.
+The end screen includes one replay option: **Rematch**. It keeps the same fighters and match type. You can also choose **Back to Character Select** or **Main Menu**.
 
 ## Controls
 
@@ -44,8 +44,9 @@ The end screen includes options to return to character select, rematch the same 
 The fight can be paused with the visible **Pause** button or the `P` key. While paused, fighters, AI, timers, stamina regeneration, particles, and special effects stop. The pause overlay includes:
 
 - **Resume**
-- **Restart Match**
-- **Character Select**
+- **Rematch**
+- **Back to Character Select**
+- **Main Menu**
 
 ## How to Play
 
@@ -105,9 +106,9 @@ All fighters are original characters made for Cage Spirit. Character select now 
 ## Current Features
 
 - Dark tournament title screen and controls/help panel.
-- Fighting-game-style character select with a large **Choose Your Fighter** heading, clear instructions, selected-card glow, card label switching from **Select** to **Selected**, a selected fighter preview panel, a Random Fighter button, AI difficulty, and a large visible confirm panel that says **Choose a Fighter First** until a fighter is selected.
+- Fighting-game-style character select with a large **Choose Your Fighter** heading, clear instructions, selected-card glow, card label switching from **Select** to **Selected**, a selected fighter preview panel, a Random Fighter button, AI difficulty, and a large visible **Confirm Fighter** panel that stays disabled until a fighter is selected.
 - Six original fighters with unique stats, colors, AI behavior preferences, silhouettes, hair/gear details, and special behaviors.
-- Match Options screen with clearly selected Timed and Untimed rules before the VS intro, followed by the **Start VS Intro** button.
+- Match Options screen with clearly selected Timed and Untimed rules before the VS intro, followed by the **Start Fight** button.
 - VS intro before each match.
 - Dark cage arena with fence pattern, floor grid, overhead lights, glowing edges, crowd silhouettes, shadows, and cinematic impact effects.
 - Stable health, stamina, special, timer, and Final Clash bars that clamp to `0%`–`100%` and display exact current/max values.
@@ -115,8 +116,8 @@ All fighters are original characters made for Cage Spirit. Character select now 
 - Responsive movement, dash dust, afterimages, knockback, hit pause, guard sparks, combo counter, low-stamina warnings, and special-ready glow.
 - Kick animation extends the existing front leg only, avoiding extra limbs.
 - AI behaviors tuned per fighter: balanced, pressure, grappler, kicker, counter, and control.
-- Pause overlay with resume, restart, and character-select flow.
-- Win/lose screen with KO, Decision, or Draw result text plus rematch, restart, and back-to-select actions.
+- Pause overlay with **Resume**, **Rematch**, **Back to Character Select**, and **Main Menu** actions.
+- Win/lose screen with KO, Decision, or Draw result text plus **Rematch**, **Back to Character Select**, and **Main Menu** actions.
 
 ## Beginner Editing Guide
 

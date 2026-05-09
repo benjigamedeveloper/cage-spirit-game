@@ -1228,3 +1228,78 @@ select {
     grid-template-columns: 1fr;
   }
 }
+
+/* Polished menu/button flow: clear touch targets, readable panels, and no duplicate replay actions. */
+.primary-button {
+  min-width: 160px;
+  transition: transform 140ms ease, filter 140ms ease, box-shadow 140ms ease;
+}
+
+.primary-button:active {
+  transform: translateY(2px) scale(0.99);
+  box-shadow: 0 0 16px rgba(104, 247, 255, 0.35), 0 4px 0 rgba(0, 0, 0, 0.35);
+}
+
+.secondary-button {
+  color: #fff;
+}
+
+.title-actions,
+.end-actions,
+.pause-actions,
+.match-options-actions,
+.select-actions {
+  gap: 14px;
+}
+
+.match-instruction {
+  max-width: 720px;
+  margin: 8px auto 18px;
+  color: var(--text);
+  font-weight: 900;
+  line-height: 1.45;
+}
+
+.match-options-card,
+.end-card,
+.pause-card,
+.title-card,
+.select-header,
+.confirm-panel {
+  border-width: 2px;
+}
+
+.end-actions .primary-button:first-child,
+.pause-actions .primary-button:first-child,
+.match-options-actions .primary-button:last-child {
+  border: 2px solid rgba(255, 255, 255, 0.8);
+}
+
+.controls-guide {
+  border-color: rgba(247, 216, 74, 0.38);
+  background:
+    linear-gradient(135deg, rgba(247, 216, 74, 0.1), transparent 40%),
+    rgba(13, 18, 36, 0.92);
+}
+
+.controls-guide span {
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text);
+  font-weight: 800;
+}
+
+@media (max-width: 620px) {
+  .primary-button {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .title-card,
+  .end-card,
+  .pause-card,
+  .match-options-card {
+    padding: 24px 16px;
+  }
+}
