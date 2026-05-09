@@ -16,8 +16,8 @@
         <h1>Cage Spirit</h1>
         <p class="tagline">Choose an original anime MMA fighter, manage stamina, and ignite cinematic non-graphic specials inside the neon cage.</p>
         <div class="title-actions">
-          <button id="startButton" class="primary-button" type="button">Choose Fighter</button>
-          <button id="helpButton" class="primary-button secondary-button" type="button">Controls</button>
+          <button id="startButton" class="primary-button" type="button">Start Game</button>
+          <button id="helpButton" class="primary-button secondary-button" type="button">How to Play / Controls</button>
         </div>
         <div id="helpPanel" class="help-panel hidden">
           <strong>Keyboard:</strong> A/D move, W hop, Shift dash, J punch, K kick, L block, I special, P pause.
@@ -29,7 +29,7 @@
       <div class="select-header">
         <p class="eyebrow">Original Fighter Roster</p>
         <h2>Choose Your Fighter</h2>
-        <p class="select-instruction">Select a fighter card, then press Confirm Fighter.</p>
+        <p class="select-instruction">Choose your fighter, then press Confirm Fighter.</p>
         <div class="select-actions">
           <label for="difficultySelect">AI Difficulty</label>
           <select id="difficultySelect" aria-label="AI difficulty">
@@ -37,7 +37,7 @@
             <option value="normal" selected>Normal</option>
             <option value="hard">Hard</option>
           </select>
-          <button id="selectBackButton" class="primary-button mini-button secondary-button" type="button">Back</button>
+          <button id="selectBackButton" class="primary-button mini-button secondary-button" type="button">Main Menu</button>
           <button id="randomButton" class="primary-button mini-button" type="button">Random Fighter</button>
         </div>
       </div>
@@ -47,7 +47,7 @@
       </div>
       <div class="confirm-panel" aria-live="polite">
         <p id="confirmHint">Pick a fighter card to unlock the next step.</p>
-        <button id="confirmButton" class="primary-button confirm-button" type="button" disabled>Choose a Fighter First</button>
+        <button id="confirmButton" class="primary-button confirm-button" type="button" disabled>Confirm Fighter</button>
       </div>
     </section>
 
@@ -58,6 +58,7 @@
         <p class="eyebrow">Match Options</p>
         <h2>Choose the Round Rules</h2>
         <p id="matchupSummary" class="matchup-summary">Fighter vs Rival</p>
+        <p class="match-instruction">Timed matches include Final Clash. Untimed matches end by KO.</p>
         <div class="match-type-grid" role="radiogroup" aria-label="Match type">
           <button id="timedMatchButton" class="match-type-card selected" type="button" data-match-type="timed" aria-pressed="true">
             <strong>Timed Match</strong>
@@ -69,8 +70,8 @@
           </button>
         </div>
         <div class="match-options-actions">
-          <button id="optionsBackButton" class="primary-button secondary-button" type="button">Back</button>
-          <button id="beginVsButton" class="primary-button" type="button">Start VS Intro</button>
+          <button id="optionsBackButton" class="primary-button secondary-button" type="button">Back to Character Select</button>
+          <button id="beginVsButton" class="primary-button" type="button">Start Fight</button>
         </div>
       </div>
     </section>
@@ -105,23 +106,20 @@
 
     <canvas id="gameCanvas" width="960" height="540" aria-label="Cage Spirit fight arena"></canvas>
 
-    <section class="controls-guide">
-      <strong>Controls:</strong>
-      <span>A/D Move</span>
-      <span>W Hop</span>
-      <span>Shift Dash</span>
+    <section id="controlsGuide" class="controls-guide">
+      <strong>Fight Screen:</strong>
       <span>J Punch</span>
       <span>K Kick</span>
       <span>L Block</span>
       <span>I Special</span>
+      <span>Shift Dash</span>
       <span>P Pause</span>
-      <span>J,J,K Combo</span>
     </section>
 
     <div id="finalClashOverlay" class="final-clash-overlay hidden" aria-live="polite">
       <div class="clash-card">
         <h2>FINAL CLASH!</h2>
-        <p>Press SPACE repeatedly to build clash power</p>
+        <p>Press SPACE repeatedly to build clash power.</p>
         <div class="clash-meter-row"><span>Player</span><div class="clash-meter"><i id="playerClashMeter"></i></div><b id="playerClashText">0%</b></div>
         <div class="clash-meter-row"><span>Opponent</span><div class="clash-meter enemy-clash"><i id="enemyClashMeter"></i></div><b id="enemyClashText">0%</b></div>
       </div>
@@ -138,11 +136,12 @@
     <div id="pauseOverlay" class="pause-overlay hidden">
       <div class="pause-card">
         <h2>PAUSED</h2>
-        <p>Fight paused. Press P or Resume to continue. Restart keeps the same matchup, or return to Character Select.</p>
+        <p>Fight paused. Resume the current match, rematch the same fighters and match type, or choose another screen.</p>
         <div class="pause-actions">
           <button id="resumeButton" class="primary-button" type="button">Resume</button>
-          <button id="pauseRestartButton" class="primary-button secondary-button" type="button">Restart Match</button>
-          <button id="pauseSelectButton" class="primary-button secondary-button" type="button">Character Select</button>
+          <button id="pauseRematchButton" class="primary-button secondary-button" type="button">Rematch</button>
+          <button id="pauseSelectButton" class="primary-button secondary-button" type="button">Back to Character Select</button>
+          <button id="pauseMainMenuButton" class="primary-button secondary-button" type="button">Main Menu</button>
         </div>
       </div>
     </div>
@@ -152,9 +151,9 @@
         <h2 id="endTitle">Fight Over</h2>
         <p id="endMessage">Great match!</p>
         <div class="end-actions">
-          <button id="restartButton" class="primary-button">Back to Select</button>
-          <button id="rematchButton" class="primary-button secondary-button" type="button">Rematch</button>
-          <button id="quickRestartButton" class="primary-button secondary-button" type="button">Restart Match</button>
+          <button id="rematchButton" class="primary-button" type="button">Rematch</button>
+          <button id="endSelectButton" class="primary-button secondary-button" type="button">Back to Character Select</button>
+          <button id="endMainMenuButton" class="primary-button secondary-button" type="button">Main Menu</button>
         </div>
       </div>
     </div>

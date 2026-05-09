@@ -35,9 +35,9 @@ const ui = {
   vsPlayer: document.getElementById("vsPlayer"),
   vsEnemy: document.getElementById("vsEnemy"),
   endOverlay: document.getElementById("endOverlay"),
-  restartButton: document.getElementById("restartButton"),
   rematchButton: document.getElementById("rematchButton"),
-  quickRestartButton: document.getElementById("quickRestartButton"),
+  endSelectButton: document.getElementById("endSelectButton"),
+  endMainMenuButton: document.getElementById("endMainMenuButton"),
   endTitle: document.getElementById("endTitle"),
   endMessage: document.getElementById("endMessage"),
   roundStatus: document.getElementById("roundStatus"),
@@ -59,8 +59,10 @@ const ui = {
   pauseButton: document.getElementById("pauseButton"),
   pauseOverlay: document.getElementById("pauseOverlay"),
   resumeButton: document.getElementById("resumeButton"),
-  pauseRestartButton: document.getElementById("pauseRestartButton"),
-  pauseSelectButton: document.getElementById("pauseSelectButton")
+  pauseRematchButton: document.getElementById("pauseRematchButton"),
+  pauseSelectButton: document.getElementById("pauseSelectButton"),
+  pauseMainMenuButton: document.getElementById("pauseMainMenuButton"),
+  controlsGuide: document.getElementById("controlsGuide")
 };
 
 // Easy balancing knobs for beginners.
@@ -410,8 +412,9 @@ function setPaused(paused) {
     gameState = "paused";
     keys.clear();
     ui.pauseOverlay.classList.remove("hidden");
-    ui.pauseButton.textContent = "Resume";
+    ui.pauseButton.textContent = "Pause";
     ui.roundStatus.textContent = "Paused";
+    updateGameplayChrome();
     return;
   }
 
@@ -421,6 +424,7 @@ function setPaused(paused) {
   }
   ui.pauseOverlay.classList.add("hidden");
   ui.pauseButton.textContent = "Pause";
+  updateGameplayChrome();
 }
 
 function togglePause() {
@@ -520,7 +524,7 @@ function buildStatBars(fighter) {
 function setConfirmState() {
   const selected = selectedFighterId ? normalizeFighterData(FIGHTERS.find((fighter) => fighter.id === selectedFighterId) || FIGHTERS[0]) : null;
   ui.confirmButton.disabled = !selected;
-  ui.confirmButton.textContent = selected ? "Confirm Fighter" : "Choose a Fighter First";
+  ui.confirmButton.textContent = "Confirm Fighter";
   ui.confirmButton.classList.toggle("confirm-ready", Boolean(selected));
   if (ui.confirmHint) {
     ui.confirmHint.textContent = selected
@@ -583,43 +587,73 @@ function updateFighterPreview() {
   `;
 }
 
+
+function updateGameplayChrome() {
+  const fightIsActive = gameState === "playing";
+  ui.pauseButton.classList.toggle("hidden", !fightIsActive);
+  ui.controlsGuide.classList.toggle("hidden", !fightIsActive);
+}
+
+function clearMatchState() {
+  pendingStart = null;
+  introTimer = 0;
+  matchTimeRemaining = ROUND_TIME_SECONDS;
+  finalClashActive = false;
+  finalClashTriggered = false;
+  finalClashResolved = false;
+  playerClashPower = 0;
+  enemyClashPower = 0;
+  clashTapWindowStart = 0;
+  clashTapCount = 0;
+  effects.length = 0;
+  comboSequence = [];
+  comboTimer = 0;
+  comboMessageTimer = 0;
+  hitPause = 0;
+  shake = 0;
+  screenFlash = 0;
+  pausedStatusText = "";
+  keys.clear();
+  ui.pauseOverlay.classList.add("hidden");
+  ui.endOverlay.classList.add("hidden");
+  ui.finalClashOverlay.classList.add("hidden");
+  ui.vsOverlay.classList.add("hidden");
+  ui.timerDisplay.classList.add("hidden");
+  ui.timerDisplay.classList.remove("danger");
+  ui.comboText.textContent = "";
+  updateClashUI();
+}
+
 function showTitleScreen() {
   setPaused(false);
-  keys.clear();
+  clearMatchState();
   gameState = "title";
-  pendingStart = null;
-  finalClashActive = false;
-  ui.finalClashOverlay.classList.add("hidden");
-  ui.endOverlay.classList.add("hidden");
   hideMainScreens();
   ui.titleScreen.classList.remove("hidden");
   ui.timerDisplay.classList.add("hidden");
-  ui.roundStatus.textContent = "Press Start";
+  ui.roundStatus.textContent = "Main Menu";
   ui.comboText.textContent = "";
+  updateGameplayChrome();
 }
 
 function showCharacterSelect() {
   setPaused(false);
-  keys.clear();
+  clearMatchState();
   gameState = "select";
-  pendingStart = null;
-  introTimer = 0;
-  finalClashActive = false;
-  ui.finalClashOverlay.classList.add("hidden");
-  ui.endOverlay.classList.add("hidden");
   hideMainScreens();
   ui.characterSelect.classList.remove("hidden");
-  ui.roundStatus.textContent = "Choose Fighter";
+  ui.roundStatus.textContent = "Character Select";
   ui.comboText.textContent = "";
   ui.timerDisplay.classList.add("hidden");
   setConfirmState();
   renderCharacterCards();
   updateFighterPreview();
+  updateGameplayChrome();
 }
 
 function confirmSelection() {
   if (!selectedFighterId) {
-    ui.roundStatus.textContent = "Choose a Fighter First";
+    ui.roundStatus.textContent = "Select a fighter";
     setConfirmState();
     return;
   }
@@ -637,6 +671,7 @@ function showMatchOptions() {
   ui.matchupSummary.textContent = `${playerData.name} vs ${rivalData.name}`;
   gameState = "options";
   updateMatchTypeButtons();
+  updateGameplayChrome();
 }
 
 function chooseMatchType(type) {
@@ -668,6 +703,7 @@ function beginVsScreen() {
 }
 
 function resetGame(selectedFighterIdToUse = selectedFighterId || "spirit-brawler", fixedEnemyId = null) {
+  clearMatchState();
   const playerData = normalizeFighterData(FIGHTERS.find((fighter) => fighter.id === selectedFighterIdToUse) || FIGHTERS[0]);
   const enemyData = chooseEnemyData(playerData.id, fixedEnemyId);
 
@@ -702,12 +738,13 @@ function resetGame(selectedFighterIdToUse = selectedFighterId || "spirit-brawler
   ui.vsPlayer.textContent = player.name;
   ui.vsEnemy.textContent = enemy.name;
   ui.vsOverlay.classList.remove("hidden");
-  ui.roundStatus.textContent = selectedMatchType === "timed" ? `VS Intro • ${ROUND_TIME_SECONDS}s Timed` : "VS Intro • Untimed";
+  ui.roundStatus.textContent = selectedMatchType === "timed" ? `Timed Match` : "Untimed Match";
   ui.timerDisplay.classList.toggle("hidden", selectedMatchType !== "timed");
   ui.timerDisplay.classList.remove("danger");
   ui.timerDisplay.textContent = String(ROUND_TIME_SECONDS);
   addFloatingText(`${playerData.specialName} ready at 100%`, canvas.width / 2, 92, player.colors.suit, 22, 1.2);
   updateUI();
+  updateGameplayChrome();
 }
 
 function startIntroFight() {
@@ -716,6 +753,7 @@ function startIntroFight() {
   ui.vsOverlay.classList.add("hidden");
   ui.roundStatus.textContent = selectedMatchType === "timed" ? `${player.name} vs ${enemy.name} • Timed` : `${player.name} vs ${enemy.name} • Untimed`;
   pendingStart = null;
+  updateGameplayChrome();
 }
 
 function rematch() {
@@ -1376,17 +1414,18 @@ function endMatch(winner, resultType) {
   ui.timerDisplay.classList.remove("danger");
   if (!winner || resultType === "Draw") {
     ui.endTitle.textContent = "Draw";
-    ui.endMessage.textContent = `Draw. Both fighters were nearly even. Rematch, restart the same pairing, or return to character select.`;
+    ui.endMessage.textContent = `Both fighters were nearly even. Choose Rematch for the same fight, Back to Character Select for a new fighter, or Main Menu.`;
     ui.roundStatus.textContent = "Draw";
   } else {
     const playerWon = winner === player;
     const loser = playerWon ? enemy : player;
     ui.endTitle.textContent = playerWon ? "Victory!" : "Defeat";
-    ui.endMessage.textContent = `${winner.name} defeats ${loser.name}. ${resultType}. Rematch instantly, restart the same pairing, or return to character select.`;
+    ui.endMessage.textContent = `${winner.name} defeats ${loser.name}. ${resultType}. Choose Rematch for the same fight, Back to Character Select for a new fighter, or Main Menu.`;
     ui.roundStatus.textContent = `${winner.name} Wins`;
   }
   ui.endOverlay.classList.remove("hidden");
   keys.clear();
+  updateGameplayChrome();
 }
 
 function updateUI() {
@@ -1853,13 +1892,14 @@ ui.timedMatchButton.addEventListener("click", () => chooseMatchType("timed"));
 ui.untimedMatchButton.addEventListener("click", () => chooseMatchType("untimed"));
 ui.optionsBackButton.addEventListener("click", showCharacterSelect);
 ui.beginVsButton.addEventListener("click", beginVsScreen);
-ui.restartButton.addEventListener("click", showCharacterSelect);
 ui.rematchButton.addEventListener("click", rematch);
-ui.quickRestartButton.addEventListener("click", () => resetGame(lastPlayerId || selectedFighterId, lastEnemyId || null));
+ui.endSelectButton.addEventListener("click", showCharacterSelect);
+ui.endMainMenuButton.addEventListener("click", showTitleScreen);
 ui.pauseButton.addEventListener("click", togglePause);
 ui.resumeButton.addEventListener("click", () => setPaused(false));
-ui.pauseRestartButton.addEventListener("click", () => resetGame(lastPlayerId || selectedFighterId, lastEnemyId || null));
+ui.pauseRematchButton.addEventListener("click", rematch);
 ui.pauseSelectButton.addEventListener("click", showCharacterSelect);
+ui.pauseMainMenuButton.addEventListener("click", showTitleScreen);
 
 // Create fighters once so the title screen has a background scene.
 player = createFighter(FIGHTERS[0], 260, 1, true);
@@ -1867,4 +1907,5 @@ enemy = createFighter(FIGHTERS[1], 700, -1, false);
 renderCharacterCards();
 updateFighterPreview();
 updateUI();
+updateGameplayChrome();
 requestAnimationFrame(gameLoop);
