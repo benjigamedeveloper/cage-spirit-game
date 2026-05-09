@@ -16,6 +16,7 @@ const ui = {
   helpPanel: document.getElementById("helpPanel"),
   selectBackButton: document.getElementById("selectBackButton"),
   randomButton: document.getElementById("randomButton"),
+  randomMatchButton: document.getElementById("randomMatchButton"),
   confirmButton: document.getElementById("confirmButton"),
   confirmHint: document.getElementById("confirmHint"),
   difficultySelect: document.getElementById("difficultySelect"),
@@ -143,132 +144,131 @@ const SAFE_FIGHTER = {
   colors: SAFE_COLORS
 };
 
-// Six original anime MMA fighters. Cards, stats, colors, AI, visuals, and specials all read from this data.
+// Twelve original anime MMA fighters. Cards, stats, colors, AI, visuals, and specials all read from this data.
 const FIGHTERS = [
   {
-    id: "spirit-brawler",
-    name: "Spirit Brawler",
-    role: "Balanced all-rounder",
-    style: "Balanced all-rounder",
-    difficulty: "Easy",
+    id: "spirit-brawler", name: "Spirit Brawler", role: "Balanced all-rounder", style: "Balanced all-rounder", difficulty: "Easy",
     description: "A clean fundamentals fighter with steady footwork, crisp boxing, and blue-white spirit pressure.",
-    strengths: ["Balanced stats", "Easy to use", "Reliable J,J,K combo"],
-    weaknesses: ["No extreme advantage", "Needs meter to shine"],
-    specialName: "Spirit Rush",
-    specialDescription: "Dashes forward with a multi-hit anime MMA combo. Medium damage, medium knockback, reliable range.",
-    ability: "Dashes forward with a multi-hit anime MMA combo. Medium damage, medium knockback, reliable range.",
-    specialType: "rush",
-    specialDamage: 30,
-    aiBehavior: "balanced",
-    theme: "Blue/white spirit energy",
+    personality: "Brave, friendly, and composed under tournament lights.", strengths: ["Balanced stats", "Easy to use", "Reliable J,J,K combo"], weaknesses: ["No extreme advantage", "Needs meter to shine"],
+    specialName: "Spirit Rush", specialDescription: "Fast forward multi-hit combo with medium damage, spirit streaks, and knockback.", ability: "Fast forward multi-hit combo with medium damage, spirit streaks, and knockback.", specialType: "rush", specialDamage: 30, aiBehavior: "balanced", theme: "Blue/white spirit energy",
+    ovr: 84, power: 82, speedRating: 82, defenseRating: 82, staminaRating: 84, techniqueRating: 85, specialRating: 86,
+    ratings: { ovr: 84, Power: 82, Speed: 82, Defense: 82, Stamina: 84, Technique: 85, Special: 86 },
     stats: { maxHealth: 100, health: 100, maxStamina: 100, stamina: 100, speed: 235, staminaRegen: 8.5, punchDamage: 7, kickDamage: 14, specialDamage: 30, dashCost: 24, punchCost: 8, kickCost: 18, defense: 34, blockReduction: 0.66 },
     colors: { suit: "#68f7ff", skin: "#ffd2a6", shorts: "#17203f", trim: "#f5fbff", hair: "#111a33", glove: "#f8fcff", shoe: "#87f6ff", aura: "rgba(104, 247, 255, 0.38)", detail: "#ffffff" }
   },
   {
-    id: "storm-boxer",
-    name: "Storm Boxer",
-    role: "Speed striker",
-    style: "Speed striker",
-    difficulty: "Medium",
+    id: "storm-boxer", name: "Storm Boxer", role: "Fast lightning striker", style: "Speed striker", difficulty: "Medium",
     description: "A lightning-fast boxer who darts through angles with bright yellow afterimages and rapid hands.",
-    strengths: ["Very fast movement", "Fast punches", "Strong dash pressure"],
-    weaknesses: ["Lower health", "Weaker kicks"],
-    specialName: "Lightning Step",
-    specialDescription: "Quickly dashes through or behind the opponent with lightning afterimages, then lands rapid punches.",
-    ability: "Quickly dashes through or behind the opponent with lightning afterimages, then lands rapid punches. Fast but lighter than heavy specials.",
-    specialType: "lightning",
-    specialDamage: 22,
-    aiBehavior: "pressure",
-    theme: "Yellow lightning energy",
+    personality: "Cocky, upbeat, and always looking for the next angle.", strengths: ["Very fast movement", "Fast punches", "Strong dash pressure"], weaknesses: ["Lower health", "Weaker kicks"],
+    specialName: "Lightning Step", specialDescription: "Yellow electric dash-through afterimage attack followed by rapid punches.", ability: "Yellow electric dash-through afterimage attack followed by rapid punches.", specialType: "lightning", specialDamage: 22, aiBehavior: "pressure", theme: "Yellow lightning energy",
+    ovr: 86, power: 74, speedRating: 95, defenseRating: 68, staminaRating: 82, techniqueRating: 90, specialRating: 88,
+    ratings: { ovr: 86, Power: 74, Speed: 95, Defense: 68, Stamina: 82, Technique: 90, Special: 88 },
     stats: { maxHealth: 88, health: 88, maxStamina: 96, stamina: 96, speed: 292, staminaRegen: 9.3, punchDamage: 8, kickDamage: 9, specialDamage: 22, dashCost: 19, punchCost: 7, kickCost: 17, defense: 24, blockReduction: 0.58 },
     colors: { suit: "#ffd84a", skin: "#f0bd8c", shorts: "#2c2308", trim: "#fff6a5", hair: "#fff26a", glove: "#fff7c2", shoe: "#ffef62", aura: "rgba(255, 216, 74, 0.36)", detail: "#ffffff" }
   },
   {
-    id: "iron-wrestler",
-    name: "Iron Wrestler",
-    role: "Heavy grappler",
-    style: "Heavy grappler",
-    difficulty: "Medium",
+    id: "iron-wrestler", name: "Iron Wrestler", role: "Heavy grappler", style: "Heavy grappler", difficulty: "Medium",
     description: "A steel-clad clinch specialist with crushing pressure, heavy strikes, and a stubborn guard.",
-    strengths: ["High health", "Strong defense", "Heavy hits"],
-    weaknesses: ["Slow movement", "High stamina costs"],
-    specialName: "Titan Clinch",
-    specialDescription: "Close-range clinch/slam-style impact with big knockback. If too far away, it becomes a weaker lunge.",
-    ability: "Close-range clinch/slam-style impact with big knockback. If too far away, it misses or becomes a weaker lunge.",
-    specialType: "clinch",
-    specialDamage: 35,
-    aiBehavior: "grappler",
-    theme: "Steel/grey energy",
+    personality: "Stoic, respectful, and impossible to bully up close.", strengths: ["High health", "Strong defense", "Heavy hits"], weaknesses: ["Slow movement", "High stamina costs"],
+    specialName: "Titan Clinch", specialDescription: "Close-range steel impact with big knockback; misses or weakens if too far.", ability: "Close-range steel impact with big knockback; misses or weakens if too far.", specialType: "clinch", specialDamage: 35, aiBehavior: "grappler", theme: "Steel/dark grey energy",
+    ovr: 85, power: 94, speedRating: 58, defenseRating: 92, staminaRating: 80, techniqueRating: 76, specialRating: 87,
+    ratings: { ovr: 85, Power: 94, Speed: 58, Defense: 92, Stamina: 80, Technique: 76, Special: 87 },
     stats: { maxHealth: 118, health: 118, maxStamina: 108, stamina: 108, speed: 178, staminaRegen: 7.1, punchDamage: 10, kickDamage: 17, specialDamage: 35, dashCost: 30, punchCost: 11, kickCost: 23, defense: 48, blockReduction: 0.72 },
     colors: { suit: "#9aa3ad", skin: "#d7aa84", shorts: "#242a31", trim: "#dce4ec", hair: "#252a31", glove: "#c6ced7", shoe: "#676f78", aura: "rgba(154, 163, 173, 0.38)", detail: "#f2f6f8" }
   },
   {
-    id: "flame-kicker",
-    name: "Flame Kicker",
-    role: "Kick pressure fighter",
-    style: "Kick pressure fighter",
-    difficulty: "Medium",
+    id: "flame-kicker", name: "Flame Kicker", role: "Kick pressure fighter", style: "Kick pressure fighter", difficulty: "Medium",
     description: "A fiery roundhouse artist who controls mid range with orange-red kicks and burning pressure.",
-    strengths: ["Strong kicks", "Good pressure", "Good mid-range"],
-    weaknesses: ["Weaker punches", "Average defense"],
-    specialName: "Inferno Roundhouse",
-    specialDescription: "Flaming roundhouse kick that creates a short-range shockwave with strong visual impact.",
-    ability: "Flaming roundhouse kick that creates a short-range shockwave. Good damage and strong visual impact.",
-    specialType: "roundhouse",
-    specialDamage: 32,
-    aiBehavior: "kicker",
-    theme: "Orange/red fire energy",
+    personality: "Flashy, competitive, and happiest at kicking range.", strengths: ["Strong kicks", "Good pressure", "Good mid-range"], weaknesses: ["Weaker punches", "Average defense"],
+    specialName: "Inferno Roundhouse", specialDescription: "Orange fire arc and short shockwave from a powerful kick-based special.", ability: "Orange fire arc and short shockwave from a powerful kick-based special.", specialType: "roundhouse", specialDamage: 32, aiBehavior: "kicker", theme: "Orange/red flame energy",
+    ovr: 85, power: 88, speedRating: 84, defenseRating: 74, staminaRating: 80, techniqueRating: 84, specialRating: 89,
+    ratings: { ovr: 85, Power: 88, Speed: 84, Defense: 74, Stamina: 80, Technique: 84, Special: 89 },
     stats: { maxHealth: 98, health: 98, maxStamina: 102, stamina: 102, speed: 230, staminaRegen: 8.2, punchDamage: 5, kickDamage: 18, specialDamage: 32, dashCost: 24, punchCost: 7, kickCost: 19, defense: 30, blockReduction: 0.62 },
     colors: { suit: "#ff6b2b", skin: "#ffc195", shorts: "#38120c", trim: "#ffd0a0", hair: "#b61e0d", glove: "#ff9356", shoe: "#ff3f22", aura: "rgba(255, 107, 43, 0.36)", detail: "#ffe08f" }
   },
   {
-    id: "shadow-counter",
-    name: "Shadow Counter",
-    role: "Defensive counter fighter",
-    style: "Defensive counter fighter",
-    difficulty: "Hard",
+    id: "shadow-counter", name: "Shadow Counter", role: "Defensive counter fighter", style: "Defensive counter fighter", difficulty: "Hard",
     description: "A patient shadow stylist with evasive blocks, purple-black aura, and timing-based punishment.",
-    strengths: ["Strong block", "Good stamina", "Rewards timing"],
-    weaknesses: ["Weaker direct attacks", "Mistimed special is modest"],
-    specialName: "Phantom Reversal",
-    specialDescription: "If activated while the opponent is attacking, it becomes a strong counter. Mistimed use is weaker.",
-    ability: "If activated while the opponent is attacking, it becomes a strong counter. If used at the wrong time, it becomes a weaker shadow hit.",
-    specialType: "reversal",
-    specialDamage: 32,
-    aiBehavior: "counter",
-    theme: "Purple/black shadow energy",
+    personality: "Quiet, analytical, and dangerous when opponents overextend.", strengths: ["Strong block", "Good stamina", "Rewards timing"], weaknesses: ["Weaker direct attacks", "Mistimed special is modest"],
+    specialName: "Phantom Reversal", specialDescription: "Purple shadow flash that is strong during enemy attacks and weaker if mistimed.", ability: "Purple shadow flash that is strong during enemy attacks and weaker if mistimed.", specialType: "reversal", specialDamage: 32, aiBehavior: "counter", theme: "Purple/black shadow energy",
+    ovr: 87, power: 76, speedRating: 82, defenseRating: 91, staminaRating: 88, techniqueRating: 94, specialRating: 90,
+    ratings: { ovr: 87, Power: 76, Speed: 82, Defense: 91, Stamina: 88, Technique: 94, Special: 90 },
     stats: { maxHealth: 96, health: 96, maxStamina: 112, stamina: 112, speed: 218, staminaRegen: 9.0, punchDamage: 6, kickDamage: 11, specialDamage: 32, dashCost: 22, punchCost: 7, kickCost: 16, defense: 55, blockReduction: 0.78 },
     colors: { suit: "#8b5cff", skin: "#e3b18d", shorts: "#120a1f", trim: "#c9b7ff", hair: "#08050e", glove: "#5b35a6", shoe: "#20102f", aura: "rgba(139, 92, 255, 0.34)", detail: "#2b173f" }
   },
   {
-    id: "gravity-monk",
-    name: "Gravity Monk",
-    role: "Control/tricky fighter",
-    style: "Control/tricky fighter",
-    difficulty: "Hard",
+    id: "gravity-monk", name: "Gravity Monk", role: "Control fighter", style: "Control/tricky fighter", difficulty: "Hard",
     description: "A calm space-violet controller who bends distance with floating footwork and pressure fields.",
-    strengths: ["Controls distance", "Good defense", "Tricky movement"],
-    weaknesses: ["Lower raw damage", "Needs spacing discipline"],
-    specialName: "Heavy Field",
-    specialDescription: "Creates a temporary gravity zone that slows the opponent and makes dash/attacks cost more stamina.",
-    ability: "Creates a temporary gravity zone that slows the opponent and makes their dash and attacks cost more stamina for a few seconds.",
-    specialType: "gravity",
-    specialDamage: 10,
-    aiBehavior: "control",
-    theme: "Violet/space gravity energy",
+    personality: "Serene, tactical, and more interested in rhythm than raw damage.", strengths: ["Controls distance", "Good defense", "Tricky movement"], weaknesses: ["Lower raw damage", "Needs spacing discipline"],
+    specialName: "Heavy Field", specialDescription: "Violet gravity ring slows the opponent and raises their stamina costs briefly.", ability: "Violet gravity ring slows the opponent and raises their stamina costs briefly.", specialType: "gravity", specialDamage: 10, aiBehavior: "control", theme: "Violet/space gravity energy",
+    ovr: 86, power: 72, speedRating: 78, defenseRating: 88, staminaRating: 86, techniqueRating: 92, specialRating: 93,
+    ratings: { ovr: 86, Power: 72, Speed: 78, Defense: 88, Stamina: 86, Technique: 92, Special: 93 },
     stats: { maxHealth: 102, health: 102, maxStamina: 108, stamina: 108, speed: 222, staminaRegen: 8.7, punchDamage: 6, kickDamage: 12, specialDamage: 10, dashCost: 22, punchCost: 8, kickCost: 17, defense: 42, blockReduction: 0.7 },
     colors: { suit: "#7d5cff", skin: "#cda27f", shorts: "#15112a", trim: "#bca6ff", hair: "#301d5a", glove: "#a98cff", shoe: "#4c33aa", aura: "rgba(125, 92, 255, 0.36)", detail: "#e7dcff" }
+  },
+  {
+    id: "frost-judoka", name: "Frost Judoka", role: "Defensive throw specialist", style: "Patient punish fighter", difficulty: "Medium",
+    description: "An ice-blue judoka who waits, braces, then sweeps opponents into a cold slow effect.",
+    personality: "Measured, polite, and relentless once a mistake appears.", strengths: ["Patient defense", "Punishes attacks", "Slowing special"], weaknesses: ["Needs timing", "Limited chase power"],
+    specialName: "Frozen Sweep", specialDescription: "Ice burst defensive sweep-style counter that slows the opponent after impact.", ability: "Ice burst defensive sweep-style counter that slows the opponent after impact.", specialType: "sweep", specialDamage: 24, aiBehavior: "punish", theme: "Ice blue energy",
+    ovr: 84, power: 78, speedRating: 76, defenseRating: 89, staminaRating: 86, techniqueRating: 88, specialRating: 84,
+    ratings: { ovr: 84, Power: 78, Speed: 76, Defense: 89, Stamina: 86, Technique: 88, Special: 84 },
+    stats: { maxHealth: 104, health: 104, maxStamina: 106, stamina: 106, speed: 205, staminaRegen: 8.6, punchDamage: 6, kickDamage: 13, specialDamage: 24, dashCost: 24, punchCost: 8, kickCost: 17, defense: 46, blockReduction: 0.74 },
+    colors: { suit: "#8ee7ff", skin: "#f0c4a1", shorts: "#0c2738", trim: "#eaffff", hair: "#d8faff", glove: "#b9f4ff", shoe: "#52c9ee", aura: "rgba(142, 231, 255, 0.36)", detail: "#ffffff" }
+  },
+  {
+    id: "neon-assassin", name: "Neon Assassin", role: "Fast combo fighter", style: "Fast combo fighter", difficulty: "Hard",
+    description: "A cyan-pink combo artist who overwhelms with neon routes and fragile high speed.",
+    personality: "Playful, theatrical, and always moving before the crowd can blink.", strengths: ["Fastest combos", "Great mobility", "Multi-hit pressure"], weaknesses: ["Fragile", "Post-special stamina drain"],
+    specialName: "Afterimage Barrage", specialDescription: "Neon duplicates join a fast multi-hit combo, then stamina dips for balance.", ability: "Neon duplicates join a fast multi-hit combo, then stamina dips for balance.", specialType: "barrage", specialDamage: 28, aiBehavior: "combo", theme: "Cyan/pink neon energy",
+    ovr: 88, power: 78, speedRating: 98, defenseRating: 62, staminaRating: 80, techniqueRating: 95, specialRating: 92,
+    ratings: { ovr: 88, Power: 78, Speed: 98, Defense: 62, Stamina: 80, Technique: 95, Special: 92 },
+    stats: { maxHealth: 84, health: 84, maxStamina: 100, stamina: 100, speed: 306, staminaRegen: 9.4, punchDamage: 7, kickDamage: 12, specialDamage: 28, dashCost: 18, punchCost: 7, kickCost: 16, defense: 20, blockReduction: 0.55 },
+    colors: { suit: "#29f6ff", skin: "#eec0a3", shorts: "#160927", trim: "#ff4fd8", hair: "#ff4fd8", glove: "#7fffff", shoe: "#ff7ce4", aura: "rgba(41, 246, 255, 0.34)", detail: "#ff4fd8" }
+  },
+  {
+    id: "crimson-oni", name: "Crimson Oni", role: "Aggressive power fighter", style: "Aggressive power fighter", difficulty: "Medium",
+    description: "A dark crimson brawler who commits to huge pressure and guard-breaking forward strikes.",
+    personality: "Intense, loud, and fearless, but sometimes too committed.", strengths: ["Huge damage", "Guard pressure", "Strong knockback"], weaknesses: ["Risky recovery", "Stamina hungry"],
+    specialName: "Oni Breaker", specialDescription: "Crimson guard-breaking burst with strong knockback and slower recovery.", ability: "Crimson guard-breaking burst with strong knockback and slower recovery.", specialType: "breaker", specialDamage: 34, aiBehavior: "berserker", theme: "Red/dark crimson aura",
+    ovr: 87, power: 96, speedRating: 72, defenseRating: 76, staminaRating: 78, techniqueRating: 80, specialRating: 91,
+    ratings: { ovr: 87, Power: 96, Speed: 72, Defense: 76, Stamina: 78, Technique: 80, Special: 91 },
+    stats: { maxHealth: 108, health: 108, maxStamina: 96, stamina: 96, speed: 210, staminaRegen: 7.6, punchDamage: 11, kickDamage: 18, specialDamage: 34, dashCost: 27, punchCost: 11, kickCost: 22, defense: 36, blockReduction: 0.64 },
+    colors: { suit: "#ff304f", skin: "#d99d7b", shorts: "#25050b", trim: "#ff9cac", hair: "#2d050a", glove: "#ff5b70", shoe: "#7d111f", aura: "rgba(255, 48, 79, 0.36)", detail: "#ffd1d9" }
+  },
+  {
+    id: "solar-champion", name: "Solar Champion", role: "Technical striker", style: "Technical striker", difficulty: "Medium",
+    description: "A gold-white technician who feints with bright flashes before landing clean precise combos.",
+    personality: "Confident, noble, and disciplined about perfect timing.", strengths: ["Clean timing", "Balanced offense", "Reliable special"], weaknesses: ["Needs precision", "Average close defense"],
+    specialName: "Solar Flare Combo", specialDescription: "Gold flash feint into a precise multi-hit combo with strong timing windows.", ability: "Gold flash feint into a precise multi-hit combo with strong timing windows.", specialType: "solar", specialDamage: 29, aiBehavior: "technical", theme: "Gold/white solar energy",
+    ovr: 86, power: 83, speedRating: 84, defenseRating: 78, staminaRating: 84, techniqueRating: 93, specialRating: 88,
+    ratings: { ovr: 86, Power: 83, Speed: 84, Defense: 78, Stamina: 84, Technique: 93, Special: 88 },
+    stats: { maxHealth: 100, health: 100, maxStamina: 104, stamina: 104, speed: 238, staminaRegen: 8.8, punchDamage: 8, kickDamage: 14, specialDamage: 29, dashCost: 23, punchCost: 8, kickCost: 18, defense: 34, blockReduction: 0.66 },
+    colors: { suit: "#ffd76a", skin: "#f5c39b", shorts: "#221b05", trim: "#fff9d7", hair: "#fff0a3", glove: "#fff5bd", shoe: "#ffc445", aura: "rgba(255, 215, 106, 0.36)", detail: "#ffffff" }
+  },
+  {
+    id: "vortex-ninja", name: "Vortex Ninja", role: "Evasive movement fighter", style: "Evasive movement fighter", difficulty: "Hard",
+    description: "A teal wind mover who slips past attacks, spins through space, and counters from odd angles.",
+    personality: "Mischievous, calm, and allergic to standing still.", strengths: ["Evasive movement", "Low dash cost", "Hard to pin down"], weaknesses: ["Lower damage", "Requires spacing"],
+    specialName: "Cyclone Step", specialDescription: "Teal wind spiral movement attack that slips past the opponent and counters.", ability: "Teal wind spiral movement attack that slips past the opponent and counters.", specialType: "cyclone", specialDamage: 23, aiBehavior: "evasive", theme: "Teal wind energy",
+    ovr: 85, power: 72, speedRating: 92, defenseRating: 74, staminaRating: 86, techniqueRating: 91, specialRating: 86,
+    ratings: { ovr: 85, Power: 72, Speed: 92, Defense: 74, Stamina: 86, Technique: 91, Special: 86 },
+    stats: { maxHealth: 92, health: 92, maxStamina: 106, stamina: 106, speed: 280, staminaRegen: 9.1, punchDamage: 6, kickDamage: 11, specialDamage: 23, dashCost: 17, punchCost: 7, kickCost: 16, defense: 28, blockReduction: 0.61 },
+    colors: { suit: "#21e7c7", skin: "#e5b696", shorts: "#05251f", trim: "#cafff4", hair: "#063f3b", glove: "#8dfff0", shoe: "#19bda9", aura: "rgba(33, 231, 199, 0.34)", detail: "#e8fffb" }
+  },
+  {
+    id: "dragon-guard", name: "Dragon Guard", role: "Tank/blocking fighter", style: "Tank/blocking fighter", difficulty: "Medium",
+    description: "A green defensive tank who survives pressure and rewards correct blocking with a dragon aura.",
+    personality: "Protective, patient, and proud of winning late rounds.", strengths: ["Great blocking", "High health", "Defense aura"], weaknesses: ["Slower speed", "Lower chase power"],
+    specialName: "Dragon Shell", specialDescription: "Green guard aura grants temporary defense and rewards blocking pressure.", ability: "Green guard aura grants temporary defense and rewards blocking pressure.", specialType: "shell", specialDamage: 16, aiBehavior: "guard", theme: "Green dragon energy",
+    ovr: 86, power: 78, speedRating: 64, defenseRating: 96, staminaRating: 88, techniqueRating: 82, specialRating: 86,
+    ratings: { ovr: 86, Power: 78, Speed: 64, Defense: 96, Stamina: 88, Technique: 82, Special: 86 },
+    stats: { maxHealth: 116, health: 116, maxStamina: 112, stamina: 112, speed: 188, staminaRegen: 8.3, punchDamage: 7, kickDamage: 12, specialDamage: 16, dashCost: 28, punchCost: 9, kickCost: 19, defense: 58, blockReduction: 0.82 },
+    colors: { suit: "#5cff8d", skin: "#d9aa87", shorts: "#082212", trim: "#d7ffe2", hair: "#0a3318", glove: "#a0ffba", shoe: "#2ac867", aura: "rgba(92, 255, 141, 0.34)", detail: "#edfff2" }
   }
 ];
 
-const FIGHTER_RATINGS = {
-  "spirit-brawler": { ovr: 84, Power: 82, Speed: 82, Defense: 82, Stamina: 84, Technique: 85, Special: 86 },
-  "storm-boxer": { ovr: 86, Power: 74, Speed: 95, Defense: 68, Stamina: 82, Technique: 90, Special: 88 },
-  "iron-wrestler": { ovr: 85, Power: 94, Speed: 58, Defense: 92, Stamina: 80, Technique: 76, Special: 87 },
-  "flame-kicker": { ovr: 85, Power: 88, Speed: 84, Defense: 74, Stamina: 80, Technique: 84, Special: 89 },
-  "shadow-counter": { ovr: 87, Power: 76, Speed: 82, Defense: 91, Stamina: 88, Technique: 94, Special: 90 },
-  "gravity-monk": { ovr: 86, Power: 72, Speed: 78, Defense: 88, Stamina: 86, Technique: 92, Special: 93 }
-};
+const FIGHTER_RATINGS = Object.fromEntries(FIGHTERS.map((fighter) => [fighter.id, fighter.ratings]));
 
 const COLORS = {
   player: FIGHTERS[0].colors,
@@ -339,7 +339,8 @@ function normalizeFighterData(fighterData = {}) {
     specialDamage: Math.max(0, safeNumber(fighterData.specialDamage, SAFE_FIGHTER.specialDamage)),
     aiBehavior: fighterData.aiBehavior || SAFE_FIGHTER.aiBehavior,
     theme: fighterData.theme || SAFE_FIGHTER.theme,
-    ratings: { ...ratingFallback, ...(fighterData.ratings || {}) },
+    personality: fighterData.personality || "Focused tournament competitor.",
+    ratings: { ...ratingFallback, ovr: fighterData.ovr || ratingFallback.ovr, Power: fighterData.power || ratingFallback.Power, Speed: fighterData.speedRating || ratingFallback.Speed, Defense: fighterData.defenseRating || ratingFallback.Defense, Stamina: fighterData.staminaRating || ratingFallback.Stamina, Technique: fighterData.techniqueRating || ratingFallback.Technique, Special: fighterData.specialRating || ratingFallback.Special, ...(fighterData.ratings || {}) },
     stats: {
       ...SAFE_FIGHTER.stats,
       ...sourceStats,
@@ -392,6 +393,7 @@ function sanitizeFighter(fighter, fallbackX) {
   fighter.aiStrafeTimer = Math.max(0, safeNumber(fighter.aiStrafeTimer, 0));
   fighter.aiSpecialPatience = safeNumber(fighter.aiSpecialPatience, 0.6);
   fighter.gravityTimer = Math.max(0, safeNumber(fighter.gravityTimer, 0));
+  fighter.dragonShellTimer = Math.max(0, safeNumber(fighter.dragonShellTimer, 0));
   fighter.gravitySource = fighter.gravitySource || null;
   if (!Array.isArray(fighter.hitStepsDone)) fighter.hitStepsDone = [];
   if (!fighter.attack || typeof fighter.attack !== "object") fighter.attack = null;
@@ -578,6 +580,7 @@ function updateFighterPreview() {
     </div>
     <h4>${fighter.specialName}</h4>
     <p>${fighter.specialDescription}</p>
+    <p class="preview-note"><strong>Personality:</strong> ${fighter.personality}</p>
     <div class="stat-bars">${buildStatBars(fighter)}</div>
     <div class="trait-grid">
       <div><strong>Strengths</strong><ul>${fighter.strengths.map((item) => `<li>${item}</li>`).join("")}</ul></div>
@@ -661,9 +664,9 @@ function confirmSelection() {
   showMatchOptions();
 }
 
-function showMatchOptions() {
+function showMatchOptions(fixedEnemyId = null) {
   const playerData = normalizeFighterData(FIGHTERS.find((fighter) => fighter.id === selectedFighterId) || FIGHTERS[0]);
-  const rivalData = chooseEnemyData(playerData.id);
+  const rivalData = chooseEnemyData(playerData.id, fixedEnemyId);
   lastEnemyId = rivalData.id;
   hideMainScreens();
   ui.endOverlay.classList.add("hidden");
@@ -821,7 +824,7 @@ function buildAttackData(fighter, type, target) {
 
   const specialType = fighter.fighterData.specialType;
   const countered = specialType === "reversal" && target?.state === "attack";
-  const specialRange = specialType === "lightning" ? 240 : specialType === "roundhouse" ? 155 : specialType === "clinch" ? 138 : specialType === "gravity" ? 210 : 175;
+  const specialRange = specialType === "lightning" ? 240 : specialType === "roundhouse" ? 155 : specialType === "clinch" ? 138 : specialType === "gravity" ? 210 : specialType === "cyclone" ? 225 : specialType === "breaker" ? 150 : specialType === "shell" ? 185 : 175;
   return { ...ATTACKS.special, damage: stats.specialDamage, stamina: 28, range: specialRange, specialType, countered };
 }
 function getDashSpeed(fighter) {
@@ -934,7 +937,7 @@ function updateFinalClash(dt) {
   const staminaRatio = enemy.stamina / Math.max(1, enemy.maxStamina);
   const healthBonus = enemy.health < enemy.maxHealth * 0.35 ? 1.08 : 1;
   const type = enemy.fighterData.specialType;
-  const typeRate = type === "lightning" ? 14 : type === "clinch" ? 8.5 : type === "reversal" ? (enemy.blocking ? 14 : 10.5) : type === "gravity" ? 10 : 11.5;
+  const typeRate = type === "lightning" || type === "barrage" ? 14 : type === "clinch" || type === "breaker" ? 8.5 : type === "reversal" || type === "sweep" ? (enemy.blocking ? 14 : 10.5) : type === "gravity" || type === "shell" ? 10 : 11.5;
   enemyClashPower = clampNumber(enemyClashPower + typeRate * difficulty * (0.72 + staminaRatio * 0.56) * healthBonus * dt, 0, 100, 0);
   if (player.gravityTimer > 0 || enemy.fighterData.specialType === "gravity") playerClashPower = clampNumber(playerClashPower - 2.5 * dt, 0, 100, 0);
   if (Math.random() < 0.42) {
@@ -953,7 +956,7 @@ function handleClashTap() {
   if (clashTapCount >= MAX_CLASH_TAPS_PER_SECOND) return;
   clashTapCount += 1;
   const playerType = player.fighterData.specialType;
-  const typeGain = playerType === "lightning" ? 3.2 : playerType === "clinch" ? 2.15 : playerType === "gravity" ? 2.4 : 2.75;
+  const typeGain = playerType === "lightning" || playerType === "barrage" ? 3.2 : playerType === "clinch" || playerType === "breaker" ? 2.15 : playerType === "gravity" || playerType === "shell" ? 2.4 : 2.75;
   const staminaGain = 0.72 + (player.stamina / Math.max(1, player.maxStamina)) * 0.48;
   const gravityPenalty = enemy.fighterData.specialType === "gravity" || player.gravityTimer > 0 ? 0.84 : 1;
   playerClashPower = clampNumber(playerClashPower + typeGain * staminaGain * gravityPenalty, 0, 100, 0);
@@ -1043,7 +1046,7 @@ function updateAI(dt) {
   if (!enemy.blocking && enemy.dashTimer <= 0) {
     const aiSpeed = safeNumber(enemy.fighterData?.stats?.speed, STATS.walkSpeed) * (enemy.gravityTimer > 0 ? 0.58 : 1);
     const behavior = enemy.fighterData.aiBehavior;
-    const idealRange = behavior === "grappler" ? 84 : behavior === "kicker" ? 128 : behavior === "control" ? 168 : 116;
+    const idealRange = behavior === "grappler" || behavior === "berserker" ? 84 : behavior === "kicker" ? 128 : behavior === "control" || behavior === "guard" ? 168 : behavior === "evasive" ? 148 : 116;
     if (absDistance > idealRange + 30) enemy.vx = directionToPlayer * aiSpeed * (behavior === "pressure" ? 1.02 : 0.86);
     else if (absDistance < idealRange - 42) enemy.vx = -directionToPlayer * aiSpeed * (behavior === "control" ? 0.82 : 0.62);
     else if (enemy.aiStrafeTimer > 0) enemy.vx = enemy.aiStrafeDirection * aiSpeed * 0.32;
@@ -1059,7 +1062,7 @@ function updateAI(dt) {
     }
 
     const behavior = enemy.fighterData.aiBehavior;
-    const blockChance = behavior === "counter" ? 0.82 : behavior === "grappler" ? 0.5 : 0.62;
+    const blockChance = behavior === "counter" || behavior === "punish" ? 0.82 : behavior === "guard" ? 0.9 : behavior === "grappler" ? 0.5 : behavior === "berserker" ? 0.36 : 0.62;
     if (playerAttackingNearby && enemy.stamina > 18 && Math.random() < blockChance * difficultyFactor) {
       enemy.blocking = true;
       enemy.aiBlockTimer = 0.34 + Math.random() * 0.24;
@@ -1067,7 +1070,7 @@ function updateAI(dt) {
     }
 
     const aiDashCost = safeNumber(enemy.fighterData?.stats?.dashCost, STATS.dashCost);
-    const dashChance = behavior === "pressure" ? 0.62 : behavior === "grappler" ? 0.52 : behavior === "control" ? 0.24 : 0.42;
+    const dashChance = behavior === "pressure" || behavior === "combo" ? 0.62 : behavior === "grappler" || behavior === "berserker" ? 0.52 : behavior === "evasive" ? 0.7 : behavior === "control" || behavior === "guard" ? 0.24 : 0.42;
     if (absDistance > 170 && enemy.stamina > aiDashCost + 8 && Math.random() < dashChance * difficultyFactor) {
       enemy.moveIntent = directionToPlayer;
       dash(enemy);
@@ -1080,17 +1083,17 @@ function updateAI(dt) {
       return;
     }
 
-    const wantsCounter = enemy.fighterData.specialType === "reversal" && player.state === "attack" && absDistance < 160;
-    const specialRangeOk = enemy.fighterData.specialType === "gravity" ? absDistance < 230 : absDistance < 165;
+    const wantsCounter = (enemy.fighterData.specialType === "reversal" || enemy.fighterData.specialType === "sweep") && player.state === "attack" && absDistance < 170;
+    const specialRangeOk = enemy.fighterData.specialType === "gravity" || enemy.fighterData.specialType === "cyclone" ? absDistance < 230 : absDistance < 170;
     if (enemy.special >= enemy.maxSpecial && enemy.stamina > 32 && enemy.aiSpecialPatience <= 0 && (wantsCounter || (specialRangeOk && Math.random() < 0.28 * difficultyFactor))) {
       enemy.aiSpecialPatience = 1.8 + Math.random() * 2.2;
       startAttack(enemy, "special", player);
       return;
     }
 
-    const attackRange = behavior === "kicker" ? 148 : behavior === "grappler" ? 105 : 125;
+    const attackRange = behavior === "kicker" ? 148 : behavior === "grappler" || behavior === "berserker" ? 105 : behavior === "control" || behavior === "guard" ? 132 : 125;
     if (absDistance < attackRange && enemy.stamina > 12 && Math.random() < 0.72 * difficultyFactor) {
-      const kickBias = behavior === "kicker" ? 0.68 : behavior === "pressure" ? 0.2 : 0.34;
+      const kickBias = behavior === "kicker" ? 0.68 : behavior === "pressure" || behavior === "combo" ? 0.2 : behavior === "berserker" ? 0.48 : 0.34;
       startAttack(enemy, Math.random() < kickBias ? "kick" : "punch", player);
     }
   }
@@ -1113,6 +1116,10 @@ function updateFighter(fighter, target, dt) {
   }
   if (fighter.dashCooldown > 0) fighter.dashCooldown -= dt;
   if (fighter.specialCooldown > 0) fighter.specialCooldown -= dt;
+  if (fighter.dragonShellTimer > 0) {
+    fighter.dragonShellTimer -= dt;
+    if (Math.random() < 0.18) addAuraBurst(fighter.x, fighter.y - 90, fighter.colors.suit, 1);
+  }
   if (fighter.gravityTimer > 0) {
     fighter.gravityTimer -= dt;
     if (Math.random() < 0.28) effects.push({ kind: "gravity", x: fighter.x, y: fighter.y - 78, radius: 58 + Math.random() * 28, life: 0.42, maxLife: 0.42, color: fighter.gravitySource || "#7d5cff" });
@@ -1205,6 +1212,58 @@ function updateSpecialHits(attacker, defender) {
       for (let g = 0; g < 10; g++) effects.push({ kind: "gravity", x: defender.x + (Math.random() - 0.5) * 110, y: defender.y - 80 + (Math.random() - 0.5) * 95, radius: 45 + Math.random() * 45, life: 0.8, maxLife: 0.8, color: attacker.colors.suit });
     }
     hits = [{ time: 0.44, damage: 10, knockback: 180, name: "special", range: 210, final: true }];
+  } else if (special === "sweep") {
+    if (!attacker.hitStepsDone.includes("frost") && attacker.attack.elapsed >= 0.22) {
+      attacker.hitStepsDone.push("frost");
+      defender.gravityTimer = 2.8;
+      defender.gravitySource = attacker.colors.suit;
+      addFloatingText("FROST SLOW", defender.x, defender.y - 168, attacker.colors.suit, 23, 1);
+    }
+    hits = [{ time: 0.38, damage: attacker.attack.countered ? 28 : 22, knockback: 285, name: "kick", range: 142, final: true }];
+  } else if (special === "barrage") {
+    if (Math.random() < 0.6) addAfterImage(attacker);
+    hits = [
+      { time: 0.2, damage: 5, knockback: 60, name: "punch" },
+      { time: 0.32, damage: 5, knockback: 70, name: "punch" },
+      { time: 0.45, damage: 5, knockback: 80, name: "punch" },
+      { time: 0.62, damage: 6, knockback: 115, name: "kick" },
+      { time: 0.82, damage: 7, knockback: 250, name: "special", final: true }
+    ];
+    if (!attacker.hitStepsDone.includes("drain") && attacker.attack.elapsed >= 0.9) {
+      attacker.hitStepsDone.push("drain");
+      attacker.stamina = clampNumber(attacker.stamina - 16, 0, attacker.maxStamina, 0);
+    }
+  } else if (special === "breaker") {
+    hits = [{ time: 0.66, damage: 34, knockback: 500, name: "special", range: 150, final: true }];
+    if (defender.blocking && attacker.attack.elapsed >= 0.55) defender.stamina = clampNumber(defender.stamina - 18, 0, defender.maxStamina, 0);
+  } else if (special === "solar") {
+    if (!attacker.hitStepsDone.includes("flare") && attacker.attack.elapsed >= 0.18) {
+      attacker.hitStepsDone.push("flare");
+      screenFlash = Math.max(screenFlash, 0.35);
+      addFloatingText("SOLAR FEINT", attacker.x, attacker.y - 168, attacker.colors.suit, 23, 0.75);
+    }
+    hits = [
+      { time: 0.42, damage: 8, knockback: 95, name: "punch" },
+      { time: 0.58, damage: 9, knockback: 120, name: "kick" },
+      { time: 0.74, damage: 12, knockback: 315, name: "special", final: true }
+    ];
+  } else if (special === "cyclone") {
+    if (!attacker.hitStepsDone.includes("slip") && attacker.attack.elapsed >= 0.18) {
+      attacker.hitStepsDone.push("slip");
+      attacker.x = clampNumber(defender.x - attacker.facing * 74, STATS.arenaPadding, canvas.width - STATS.arenaPadding, attacker.x);
+      attacker.facing = defender.x > attacker.x ? 1 : -1;
+      addAfterImage(attacker);
+      addSpeedLines(attacker.x, attacker.y - 80, attacker.facing, 24, attacker.colors.suit);
+    }
+    hits = [{ time: 0.42, damage: 23, knockback: 320, name: "special", range: 190, final: true }];
+  } else if (special === "shell") {
+    if (!attacker.hitStepsDone.includes("shell")) {
+      attacker.hitStepsDone.push("shell");
+      attacker.dragonShellTimer = 5;
+      attacker.stamina = clampNumber(attacker.stamina + 22, 0, attacker.maxStamina, attacker.maxStamina);
+      addFloatingText("DRAGON SHELL", attacker.x, attacker.y - 168, attacker.colors.suit, 25, 1.2);
+    }
+    hits = [{ time: 0.56, damage: attacker.blocking ? 22 : 16, knockback: 220, name: "special", range: 170, final: true }];
   } else {
     hits = [
       { time: 0.42, damage: 6, knockback: 80, name: "punch" },
@@ -1247,6 +1306,11 @@ function tryHit(attacker, defender, damage, knockback, type, specialGain, finalS
   if (defender.blocking && defender.stamina > STATS.guardBreakLimit) {
     blocked = true;
     finalDamage *= 1 - safeNumber(defender.fighterData?.stats?.blockReduction, STATS.blockDamageReduction);
+    if (defender.dragonShellTimer > 0) {
+      finalDamage *= 0.55;
+      defender.special = clampNumber(defender.special + 8, 0, defender.maxSpecial, 0);
+      addFloatingText("SHELL GUARD", defender.x, defender.y - 175, defender.colors.suit, 18, 0.7);
+    }
     defender.stamina -= damage * 1.45;
     addFloatingText("GUARD SPARK", defender.x, defender.y - 128, "#68f7ff", 19);
     if (defender.stamina <= STATS.guardBreakLimit) guardBreak(defender);
@@ -1659,6 +1723,9 @@ function drawFighterBody(fighter, alpha = 1) {
   } else if (specialType === "gravity") {
     ctx.arc(0, -92, 19, 0, Math.PI * 2);
     ctx.moveTo(-22, -92); ctx.lineTo(22, -92);
+  } else if (["sweep", "barrage", "breaker", "solar", "cyclone", "shell"].includes(specialType)) {
+    ctx.arc(0, -92, 22, 0.1, Math.PI * 1.7);
+    ctx.moveTo(-18, -108); ctx.lineTo(18, -78);
   } else {
     ctx.moveTo(0, -116); ctx.lineTo(0, -72);
   }
@@ -1723,12 +1790,18 @@ function drawFighterBody(fighter, alpha = 1) {
     ctx.arc(18, -151, 7, 0, Math.PI * 2);
     ctx.fill();
   }
-  if (specialType === "gravity") {
+  if (specialType === "gravity" || specialType === "shell") {
     ctx.strokeStyle = c.trim;
     ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.arc(0, -144, 27, 0.2, Math.PI * 1.35);
+    ctx.arc(0, -144, specialType === "shell" ? 31 : 27, 0.2, Math.PI * 1.35);
     ctx.stroke();
+  }
+  if (["barrage", "cyclone"].includes(specialType)) {
+    ctx.fillStyle = c.trim;
+    ctx.beginPath();
+    ctx.moveTo(-22, -156); ctx.lineTo(-34, -149); ctx.lineTo(-20, -144);
+    ctx.fill();
   }
   ctx.fillStyle = "#0b1020";
   ctx.fillRect(5, -146, 5, 3);
@@ -1887,6 +1960,22 @@ ui.randomButton.addEventListener("click", () => {
   selectFighter(randomFighter.id);
   ui.roundStatus.textContent = `${normalizeFighterData(randomFighter).name} selected randomly`;
 });
+
+function createRandomMatch() {
+  const randomPlayer = normalizeFighterData(FIGHTERS[Math.floor(Math.random() * FIGHTERS.length)]);
+  selectedFighterId = randomPlayer.id;
+  const randomEnemy = chooseEnemyData(randomPlayer.id);
+  lastPlayerId = randomPlayer.id;
+  lastEnemyId = randomEnemy.id;
+  selectedMatchType = Math.random() < 0.5 ? "timed" : "untimed";
+  setConfirmState();
+  renderCharacterCards();
+  updateFighterPreview();
+  ui.roundStatus.textContent = "Random Match Created";
+  showMatchOptions(randomEnemy.id);
+}
+
+if (ui.randomMatchButton) ui.randomMatchButton.addEventListener("click", createRandomMatch);
 ui.confirmButton.addEventListener("click", confirmSelection);
 ui.timedMatchButton.addEventListener("click", () => chooseMatchType("timed"));
 ui.untimedMatchButton.addEventListener("click", () => chooseMatchType("untimed"));
