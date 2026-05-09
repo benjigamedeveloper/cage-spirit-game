@@ -8,6 +8,8 @@ const ctx = canvas.getContext("2d");
 
 const ui = {
   titleScreen: document.getElementById("titleScreen"),
+  characterSelect: document.getElementById("characterSelect"),
+  fighterCards: document.getElementById("fighterCards"),
   startButton: document.getElementById("startButton"),
   endOverlay: document.getElementById("endOverlay"),
   restartButton: document.getElementById("restartButton"),
@@ -15,6 +17,8 @@ const ui = {
   endMessage: document.getElementById("endMessage"),
   roundStatus: document.getElementById("roundStatus"),
   comboText: document.getElementById("comboText"),
+  playerName: document.getElementById("playerName"),
+  enemyName: document.getElementById("enemyName"),
   playerHealth: document.getElementById("playerHealth"),
   playerStamina: document.getElementById("playerStamina"),
   playerSpecial: document.getElementById("playerSpecial"),
@@ -55,15 +59,68 @@ const ATTACKS = {
   special: { damage: 33, stamina: 28, range: 170, windup: 0.42, active: 0.92, recovery: 0.5, knockback: 420, specialGain: 0 }
 };
 
-const COLORS = {
-  player: {
-    suit: "#68f7ff", skin: "#ffd2a6", shorts: "#17203f", trim: "#f5fbff",
-    hair: "#111a33", glove: "#f8fcff", shoe: "#87f6ff", aura: "rgba(104, 247, 255, 0.38)"
+// Five original anime MMA fighters.  The cards, stats, colors, AI, and specials all read from this data.
+const FIGHTERS = [
+  {
+    id: "spirit-brawler",
+    name: "Spirit Brawler",
+    style: "Balanced all-rounder",
+    description: "A clean fundamentals fighter with steady footwork, crisp boxing, and blue-white spirit pressure.",
+    specialName: "Spirit Rush",
+    ability: "Dashes forward with a fast anime MMA combo for balanced multi-hit damage and knockback.",
+    specialType: "rush",
+    stats: { health: 100, stamina: 100, speed: 235, staminaRegen: 8.5, punchDamage: 7, kickDamage: 14, punchCost: 8, kickCost: 18, blockReduction: 0.66 },
+    colors: { suit: "#68f7ff", skin: "#ffd2a6", shorts: "#17203f", trim: "#f5fbff", hair: "#111a33", glove: "#f8fcff", shoe: "#87f6ff", aura: "rgba(104, 247, 255, 0.38)", detail: "#ffffff" }
   },
-  enemy: {
-    suit: "#ff4d76", skin: "#f2b58b", shorts: "#351520", trim: "#ffb1c3",
-    hair: "#26070d", glove: "#ff315f", shoe: "#2b0b12", aura: "rgba(255, 77, 118, 0.35)"
+  {
+    id: "storm-boxer",
+    name: "Storm Boxer",
+    style: "Fast striker",
+    description: "A lightning-fast boxer who darts through angles with bright yellow afterimages and rapid hands.",
+    specialName: "Lightning Step",
+    ability: "Dashes through or behind the opponent, then lands rapid punches. Lower damage, but very hard to dodge.",
+    specialType: "lightning",
+    stats: { health: 88, stamina: 96, speed: 292, staminaRegen: 9.3, punchDamage: 8, kickDamage: 9, punchCost: 7, kickCost: 17, blockReduction: 0.58 },
+    colors: { suit: "#ffd84a", skin: "#f0bd8c", shorts: "#2c2308", trim: "#fff6a5", hair: "#fff26a", glove: "#fff7c2", shoe: "#ffef62", aura: "rgba(255, 216, 74, 0.36)", detail: "#ffffff" }
+  },
+  {
+    id: "iron-wrestler",
+    name: "Iron Wrestler",
+    style: "Slow powerhouse grappler",
+    description: "A steel-clad clinch specialist with crushing pressure, heavy strikes, and a stubborn guard.",
+    specialName: "Titan Clinch",
+    ability: "If close, grabs and performs a heavy non-graphic slam impact with huge knockback. Too far becomes a weaker lunge.",
+    specialType: "clinch",
+    stats: { health: 118, stamina: 108, speed: 178, staminaRegen: 7.1, punchDamage: 10, kickDamage: 17, punchCost: 11, kickCost: 23, blockReduction: 0.72 },
+    colors: { suit: "#9aa3ad", skin: "#d7aa84", shorts: "#242a31", trim: "#dce4ec", hair: "#252a31", glove: "#c6ced7", shoe: "#676f78", aura: "rgba(154, 163, 173, 0.38)", detail: "#f2f6f8" }
+  },
+  {
+    id: "flame-kicker",
+    name: "Flame Kicker",
+    style: "Kick-focused pressure fighter",
+    description: "A fiery roundhouse artist who controls mid range with orange-red kicks and burning pressure.",
+    specialName: "Inferno Roundhouse",
+    ability: "Unleashes a flaming roundhouse with a short-range shockwave for good damage and strong visual impact.",
+    specialType: "roundhouse",
+    stats: { health: 98, stamina: 102, speed: 230, staminaRegen: 8.2, punchDamage: 5, kickDamage: 18, punchCost: 7, kickCost: 19, blockReduction: 0.62 },
+    colors: { suit: "#ff6b2b", skin: "#ffc195", shorts: "#38120c", trim: "#ffd0a0", hair: "#b61e0d", glove: "#ff9356", shoe: "#ff3f22", aura: "rgba(255, 107, 43, 0.36)", detail: "#ffe08f" }
+  },
+  {
+    id: "shadow-counter",
+    name: "Shadow Counter",
+    style: "Defensive counter fighter",
+    description: "A patient shadow stylist with evasive blocks, purple-black aura, and timing-based punishment.",
+    specialName: "Phantom Reversal",
+    ability: "Counters hard if the opponent is attacking. If mistimed, only a weaker shadow hit comes out.",
+    specialType: "reversal",
+    stats: { health: 96, stamina: 112, speed: 218, staminaRegen: 9.0, punchDamage: 6, kickDamage: 11, punchCost: 7, kickCost: 16, blockReduction: 0.78 },
+    colors: { suit: "#8b5cff", skin: "#e3b18d", shorts: "#120a1f", trim: "#c9b7ff", hair: "#08050e", glove: "#5b35a6", shoe: "#20102f", aura: "rgba(139, 92, 255, 0.34)", detail: "#2b173f" }
   }
+];
+
+const COLORS = {
+  player: FIGHTERS[0].colors,
+  enemy: FIGHTERS[3].colors
 };
 
 const keys = new Set();
@@ -79,9 +136,11 @@ let comboTimer = 0;
 let comboMessageTimer = 0;
 const effects = [];
 
-function createFighter(name, x, facing, colors, controlledByPlayer) {
+function createFighter(fighterData, x, facing, controlledByPlayer) {
+  const stats = fighterData.stats;
   return {
-    name,
+    name: fighterData.name,
+    fighterData,
     x,
     y: STATS.groundY,
     width: 52,
@@ -90,9 +149,11 @@ function createFighter(name, x, facing, colors, controlledByPlayer) {
     vy: 0,
     facing,
     moveIntent: facing,
-    colors,
-    health: STATS.maxHealth,
-    stamina: STATS.maxStamina,
+    colors: fighterData.colors,
+    maxHealth: stats.health,
+    maxStamina: stats.stamina,
+    health: stats.health,
+    stamina: stats.stamina,
     special: 0,
     state: "idle",
     stateTimer: 0,
@@ -108,6 +169,7 @@ function createFighter(name, x, facing, colors, controlledByPlayer) {
     aiBlockTimer: 0,
     aiStrafeTimer: 0,
     aiStrafeDirection: 0,
+    aiSpecialPatience: 0.65 + Math.random() * 0.8,
     knockbackTimer: 0,
     hitReactTimer: 0,
     lowStaminaTimer: 0,
@@ -115,10 +177,52 @@ function createFighter(name, x, facing, colors, controlledByPlayer) {
     controlledByPlayer
   };
 }
+function renderCharacterCards() {
+  ui.fighterCards.innerHTML = "";
+  for (const fighter of FIGHTERS) {
+    const card = document.createElement("button");
+    card.className = "fighter-card";
+    card.type = "button";
+    card.style.setProperty("--card-accent", fighter.colors.suit);
+    card.style.setProperty("--card-dark", fighter.colors.shorts);
+    card.innerHTML = `
+      <div class="fighter-portrait" aria-hidden="true"></div>
+      <h3>${fighter.name}</h3>
+      <p class="fighter-style">${fighter.style}</p>
+      <p class="fighter-desc">${fighter.description}</p>
+      <div class="stat-grid">
+        <span class="stat-pill"><strong>Health</strong> ${fighter.stats.health}</span>
+        <span class="stat-pill"><strong>Speed</strong> ${fighter.stats.speed}</span>
+        <span class="stat-pill"><strong>Stamina</strong> ${fighter.stats.stamina}</span>
+        <span class="stat-pill"><strong>Punch</strong> ${fighter.stats.punchDamage}</span>
+        <span class="stat-pill"><strong>Kick</strong> ${fighter.stats.kickDamage}</span>
+        <span class="stat-pill"><strong>Block</strong> ${Math.round(fighter.stats.blockReduction * 100)}%</span>
+      </div>
+      <p class="fighter-special">Special: ${fighter.specialName}</p>
+      <p class="ability-desc">${fighter.ability}</p>
+      <span class="choose-label">Select Fighter</span>
+    `;
+    card.addEventListener("click", () => resetGame(fighter.id));
+    ui.fighterCards.appendChild(card);
+  }
+}
 
-function resetGame() {
-  player = createFighter("Rin", 260, 1, COLORS.player, true);
-  enemy = createFighter("Kai", 700, -1, COLORS.enemy, false);
+function showCharacterSelect() {
+  gameState = "select";
+  ui.titleScreen.classList.add("hidden");
+  ui.endOverlay.classList.add("hidden");
+  ui.characterSelect.classList.remove("hidden");
+  ui.roundStatus.textContent = "Choose Fighter";
+  ui.comboText.textContent = "";
+}
+
+function resetGame(selectedFighterId) {
+  const playerData = FIGHTERS.find((fighter) => fighter.id === selectedFighterId) || FIGHTERS[0];
+  const rivals = FIGHTERS.filter((fighter) => fighter.id !== playerData.id);
+  const enemyData = rivals[Math.floor(Math.random() * rivals.length)] || FIGHTERS[1];
+
+  player = createFighter(playerData, 260, 1, true);
+  enemy = createFighter(enemyData, 700, -1, false);
   effects.length = 0;
   comboSequence = [];
   comboTimer = 0;
@@ -129,10 +233,11 @@ function resetGame() {
   gameState = "playing";
   ui.endOverlay.classList.add("hidden");
   ui.titleScreen.classList.add("hidden");
-  ui.roundStatus.textContent = "Fight!";
+  ui.characterSelect.classList.add("hidden");
+  ui.roundStatus.textContent = `${player.name} vs ${enemy.name}`;
+  addFloatingText(`${playerData.specialName} ready at 100%`, canvas.width / 2, 92, player.colors.suit, 22, 1.2);
   updateUI();
 }
-
 function showLowStamina(fighter, action) {
   if (fighter.lowStaminaTimer > 0) return;
   fighter.lowStaminaTimer = 0.55;
@@ -143,9 +248,9 @@ function showLowStamina(fighter, action) {
   }
 }
 
-function startAttack(fighter, type) {
+function startAttack(fighter, type, target = null) {
   if (gameState !== "playing" || fighter.state === "attack" || fighter.guardBroken || fighter.specialCooldown > 0) return;
-  const data = ATTACKS[type];
+  const data = buildAttackData(fighter, type, target);
   if (type === "special" && fighter.special < 100) {
     if (fighter.controlledByPlayer) addFloatingText("SPECIAL NOT READY", fighter.x, fighter.y - 170, "#f7d84a", 19);
     return;
@@ -165,14 +270,37 @@ function startAttack(fighter, type) {
   if (type === "special") {
     fighter.special = 0;
     fighter.specialCooldown = 1.05;
-    ui.comboText.textContent = fighter.controlledByPlayer ? "AZURE CAGE RUSH!" : "CRIMSON TEMPEST RUSH!";
+    ui.comboText.textContent = `${fighter.fighterData.specialName}!`;
     comboMessageTimer = 1.5;
     screenFlash = 0.35;
     shake = Math.max(shake, 16);
     addAuraBurst(fighter.x, fighter.y - 82, fighter.colors.suit, 22);
     addSpeedLines(fighter.x, fighter.y - 76, fighter.facing, 28, fighter.colors.suit);
-    addFloatingText(fighter.controlledByPlayer ? "AZURE CAGE RUSH" : "CRIMSON RUSH", canvas.width / 2, 132, fighter.colors.suit, 34, 1.1);
+    addFloatingText(fighter.fighterData.specialName.toUpperCase(), canvas.width / 2, 132, fighter.colors.suit, 34, 1.1);
   }
+}
+
+function buildAttackData(fighter, type, target) {
+  const stats = fighter.fighterData.stats;
+  if (type === "punch") {
+    const speedBonus = fighter.fighterData.specialType === "lightning" ? 0.75 : 1;
+    return { ...ATTACKS.punch, damage: stats.punchDamage, stamina: stats.punchCost, windup: ATTACKS.punch.windup * speedBonus, recovery: ATTACKS.punch.recovery * speedBonus };
+  }
+  if (type === "kick") {
+    const kickRange = fighter.fighterData.specialType === "roundhouse" ? 108 : ATTACKS.kick.range;
+    return { ...ATTACKS.kick, damage: stats.kickDamage, stamina: stats.kickCost, range: kickRange };
+  }
+  if (type === "combo") {
+    return { ...ATTACKS.combo, damage: Math.round(stats.punchDamage + stats.kickDamage * 0.78), stamina: 12, range: 112 };
+  }
+
+  const specialType = fighter.fighterData.specialType;
+  const countered = specialType === "reversal" && target?.state === "attack";
+  const specialRange = specialType === "lightning" ? 240 : specialType === "roundhouse" ? 155 : specialType === "clinch" ? 138 : 175;
+  return { ...ATTACKS.special, stamina: 28, range: specialRange, specialType, countered };
+}
+function getDashSpeed(fighter) {
+  return STATS.dashSpeed * (fighter.fighterData.stats.speed / STATS.walkSpeed);
 }
 
 function dash(fighter) {
@@ -188,7 +316,7 @@ function dash(fighter) {
   fighter.stamina -= STATS.dashCost;
   fighter.dashTimer = STATS.dashDuration;
   fighter.dashCooldown = STATS.dashCooldown;
-  fighter.vx = direction * STATS.dashSpeed;
+  fighter.vx = direction * getDashSpeed(fighter);
   fighter.facing = direction;
   fighter.blocking = false;
   addDashDust(fighter.x - direction * 18, fighter.y - 10, -direction, fighter.colors.suit);
@@ -240,7 +368,7 @@ function handlePlayerInput(dt) {
       player.moveIntent = input;
       player.facing = input;
     }
-    if (player.dashTimer <= 0) player.vx = input * STATS.walkSpeed;
+    if (player.dashTimer <= 0) player.vx = input * player.fighterData.stats.speed;
   }
 
   player.blocking = keys.has("l") && !player.guardBroken && player.stamina > 0 && player.state !== "attack" && player.knockbackTimer <= 0;
@@ -255,6 +383,7 @@ function updateAI(dt) {
   enemy.facing = directionToPlayer;
   enemy.moveIntent = directionToPlayer;
   enemy.aiDecisionCooldown -= dt;
+  enemy.aiSpecialPatience -= dt;
   enemy.aiBlockTimer -= dt;
   enemy.aiStrafeTimer -= dt;
   if (enemy.knockbackTimer <= 0 && enemy.state !== "attack" && enemy.dashTimer <= 0) enemy.vx = 0;
@@ -265,9 +394,9 @@ function updateAI(dt) {
 
   // Always keep the AI moving toward a usable fighting range so it does not freeze.
   if (!enemy.blocking && enemy.dashTimer <= 0) {
-    if (absDistance > 150) enemy.vx = directionToPlayer * STATS.walkSpeed * 0.86;
-    else if (absDistance < 72) enemy.vx = -directionToPlayer * STATS.walkSpeed * 0.62;
-    else if (enemy.aiStrafeTimer > 0) enemy.vx = enemy.aiStrafeDirection * STATS.walkSpeed * 0.32;
+    if (absDistance > 150) enemy.vx = directionToPlayer * enemy.fighterData.stats.speed * 0.86;
+    else if (absDistance < 72) enemy.vx = -directionToPlayer * enemy.fighterData.stats.speed * 0.62;
+    else if (enemy.aiStrafeTimer > 0) enemy.vx = enemy.aiStrafeDirection * enemy.fighterData.stats.speed * 0.32;
   }
 
   if (enemy.aiDecisionCooldown <= 0) {
@@ -297,8 +426,15 @@ function updateAI(dt) {
       return;
     }
 
+    const wantsCounter = enemy.fighterData.specialType === "reversal" && player.state === "attack" && absDistance < 160;
+    if (enemy.special >= 100 && enemy.stamina > 32 && enemy.aiSpecialPatience <= 0 && (wantsCounter || (absDistance < 155 && Math.random() < 0.34))) {
+      enemy.aiSpecialPatience = 1.8 + Math.random() * 2.2;
+      startAttack(enemy, "special", player);
+      return;
+    }
+
     if (absDistance < 125 && enemy.stamina > 12 && Math.random() < 0.76) {
-      startAttack(enemy, Math.random() < 0.66 ? "punch" : "kick");
+      startAttack(enemy, Math.random() < 0.66 ? "punch" : "kick", player);
     }
   }
 
@@ -331,7 +467,7 @@ function updateFighter(fighter, target, dt) {
   }
 
   fighter.x = Math.max(STATS.arenaPadding, Math.min(canvas.width - STATS.arenaPadding, fighter.x));
-  fighter.stamina = Math.min(STATS.maxStamina, fighter.stamina + STATS.staminaRegen * dt);
+  fighter.stamina = Math.min(fighter.maxStamina, fighter.stamina + fighter.fighterData.stats.staminaRegen * dt);
 
   if (fighter.blocking && fighter.stamina <= STATS.guardBreakLimit) guardBreak(fighter);
   if (fighter.guardBreakTimer > 0) {
@@ -351,7 +487,7 @@ function updateFighter(fighter, target, dt) {
       fighter.hitStepsDone = [];
       if (fighter.comboQueued) {
         fighter.comboQueued = false;
-        startAttack(fighter, "combo");
+        startAttack(fighter, "combo", target);
       }
     }
   }
@@ -368,32 +504,63 @@ function updateNormalHit(attacker, defender) {
 }
 
 function updateSpecialHits(attacker, defender) {
-  // Four quick hits create an anime MMA combo without instant-killing.
-  const hits = [
-    { time: 0.42, damage: 6, knockback: 80, name: "punch" },
-    { time: 0.58, damage: 7, knockback: 105, name: "punch" },
-    { time: 0.76, damage: 8, knockback: 135, name: "kick" },
-    { time: 0.98, damage: 12, knockback: ATTACKS.special.knockback, name: "special" }
-  ];
+  const special = attacker.attack.specialType;
+  let hits;
+
+  // Each special stays in the 20-35 damage range, then resets the meter to 0 in startAttack().
+  if (special === "lightning") {
+    if (!attacker.hitStepsDone.includes("blink") && attacker.attack.elapsed >= 0.18) {
+      attacker.hitStepsDone.push("blink");
+      attacker.x = Math.max(STATS.arenaPadding, Math.min(canvas.width - STATS.arenaPadding, defender.x + attacker.facing * 52));
+      attacker.facing *= -1;
+      attacker.moveIntent = attacker.facing;
+      addAfterImage(attacker);
+      addSpeedLines(attacker.x, attacker.y - 78, attacker.facing, 30, attacker.colors.suit);
+    }
+    hits = [
+      { time: 0.28, damage: 7, knockback: 72, name: "punch" },
+      { time: 0.42, damage: 7, knockback: 82, name: "punch" },
+      { time: 0.58, damage: 8, knockback: 245, name: "special" }
+    ];
+  } else if (special === "clinch") {
+    const close = Math.abs(attacker.x - defender.x) <= 92;
+    hits = [{ time: 0.52, damage: close ? 35 : 18, knockback: close ? 520 : 250, name: "special", range: close ? 98 : 138, final: close }];
+  } else if (special === "roundhouse") {
+    hits = [
+      { time: 0.54, damage: 25, knockback: 315, name: "kick", range: 132 },
+      { time: 0.68, damage: 7, knockback: 210, name: "special", range: 158, final: true }
+    ];
+  } else if (special === "reversal") {
+    hits = [{ time: 0.36, damage: attacker.attack.countered ? 32 : 20, knockback: attacker.attack.countered ? 410 : 220, name: "special", range: attacker.attack.countered ? 178 : 126, final: true }];
+  } else {
+    hits = [
+      { time: 0.42, damage: 6, knockback: 80, name: "punch" },
+      { time: 0.58, damage: 7, knockback: 105, name: "punch" },
+      { time: 0.76, damage: 8, knockback: 135, name: "kick" },
+      { time: 0.98, damage: 9, knockback: ATTACKS.special.knockback, name: "special", final: true }
+    ];
+  }
 
   for (let i = 0; i < hits.length; i++) {
     const step = hits[i];
     if (!attacker.hitStepsDone.includes(i) && attacker.attack.elapsed >= step.time) {
       attacker.hitStepsDone.push(i);
-      const landed = tryHit(attacker, defender, step.damage, step.knockback, step.name, 0, i === hits.length - 1);
+      const previousRange = attacker.attack.range;
+      if (step.range) attacker.attack.range = step.range;
+      const landed = tryHit(attacker, defender, step.damage, step.knockback, step.name, 0, step.final || i === hits.length - 1);
+      attacker.attack.range = previousRange;
       const sparkX = attacker.x + attacker.facing * (55 + i * 8);
-      addImpactFlash(sparkX, attacker.y - 88 + i * 8, step.name, false);
-      addAuraBurst(attacker.x, attacker.y - 82, attacker.colors.suit, i === hits.length - 1 ? 18 : 7);
-      addSpeedLines(attacker.x, attacker.y - 80, attacker.facing, i === hits.length - 1 ? 18 : 8, attacker.colors.suit);
-      if (landed && i === hits.length - 1) screenFlash = 0.45;
+      addImpactFlash(sparkX, attacker.y - 88 + i * 8, step.name, false, attacker.colors.suit);
+      addAuraBurst(attacker.x, attacker.y - 82, attacker.colors.suit, step.final || i === hits.length - 1 ? 18 : 7);
+      addSpeedLines(attacker.x, attacker.y - 80, attacker.facing, step.final || i === hits.length - 1 ? 18 : 8, attacker.colors.suit);
+      if (landed && (step.final || i === hits.length - 1)) screenFlash = 0.45;
     }
   }
 }
-
 function tryHit(attacker, defender, damage, knockback, type, specialGain, finalSpecialHit = false) {
   const distance = Math.abs(attacker.x - defender.x);
   const facingTarget = Math.sign(defender.x - attacker.x) === attacker.facing;
-  const range = type === "special" ? ATTACKS.special.range : attacker.attack.range;
+  const range = attacker.attack.range;
   if (!facingTarget || distance > range) return false;
 
   let finalDamage = damage;
@@ -401,7 +568,7 @@ function tryHit(attacker, defender, damage, knockback, type, specialGain, finalS
 
   if (defender.blocking && defender.stamina > STATS.guardBreakLimit) {
     blocked = true;
-    finalDamage *= 1 - STATS.blockDamageReduction;
+    finalDamage *= 1 - defender.fighterData.stats.blockReduction;
     defender.stamina -= damage * 1.45;
     addFloatingText("GUARD SPARK", defender.x, defender.y - 128, "#68f7ff", 19);
     if (defender.stamina <= STATS.guardBreakLimit) guardBreak(defender);
@@ -415,7 +582,7 @@ function tryHit(attacker, defender, damage, knockback, type, specialGain, finalS
 
   const hitX = defender.x - defender.facing * 24;
   const hitY = defender.y - 78;
-  addImpactFlash(hitX, hitY, type, blocked);
+  addImpactFlash(hitX, hitY, type, blocked, attacker.colors.suit);
   addFloatingText(`-${Math.ceil(finalDamage)}`, defender.x, defender.y - 148, blocked ? "#8be9ff" : "#fff1a8");
 
   hitPause = type === "punch" ? 0.035 : finalSpecialHit ? 0.12 : 0.075;
@@ -456,7 +623,7 @@ function addFloatingText(text, x, y, color, size = 26, life = 0.8) {
   effects.push({ kind: "text", text, x, y, vy: -58, life, maxLife: life, color, size });
 }
 
-function addImpactFlash(x, y, type, blocked) {
+function addImpactFlash(x, y, type, blocked, color = null) {
   effects.push({
     kind: "flash",
     x,
@@ -464,6 +631,7 @@ function addImpactFlash(x, y, type, blocked) {
     life: 0.28,
     maxLife: 0.28,
     radius: type === "special" ? 92 : type === "kick" || type === "combo" ? 60 : 38,
+    color,
     blocked
   });
   addSpeedLines(x, y, Math.random() < 0.5 ? 1 : -1, type === "special" ? 24 : 10, blocked ? "#68f7ff" : "#fff1a8");
@@ -554,19 +722,23 @@ function checkWinner() {
     const playerWon = enemy.health <= 0;
     ui.endTitle.textContent = playerWon ? "Victory!" : "Defeat";
     ui.endMessage.textContent = playerWon
-      ? "Rin's azure spirit owns the cage. Run it back and chase a cleaner combo!"
-      : "Kai takes the round. Breathe, guard, dash, and build your special for the rematch!";
-    ui.roundStatus.textContent = playerWon ? "Rin Wins" : "Kai Wins";
+      ? `${player.name} owns the cage. Choose again and chase a cleaner combo!`
+      : `${enemy.name} takes the round. Breathe, guard, dash, and build your special for the rematch!`;
+    ui.roundStatus.textContent = playerWon ? `${player.name} Wins` : `${enemy.name} Wins`;
     ui.endOverlay.classList.remove("hidden");
   }
 }
 
 function updateUI() {
-  setBar(ui.playerHealth, ui.playerHealthText, player.health, STATS.maxHealth, false);
-  setBar(ui.playerStamina, ui.playerStaminaText, player.stamina, STATS.maxStamina, false);
+  ui.playerName.textContent = player.name;
+  ui.enemyName.textContent = enemy.name;
+  ui.playerSpecial.style.background = `linear-gradient(90deg, ${player.colors.suit}, ${player.colors.trim}, #ffffff)`;
+  ui.enemySpecial.style.background = `linear-gradient(90deg, ${enemy.colors.suit}, ${enemy.colors.trim}, #ffffff)`;
+  setBar(ui.playerHealth, ui.playerHealthText, player.health, player.maxHealth, false);
+  setBar(ui.playerStamina, ui.playerStaminaText, player.stamina, player.maxStamina, false);
   setBar(ui.playerSpecial, ui.playerSpecialText, player.special, 100, true);
-  setBar(ui.enemyHealth, ui.enemyHealthText, enemy.health, STATS.maxHealth, false);
-  setBar(ui.enemyStamina, ui.enemyStaminaText, enemy.stamina, STATS.maxStamina, false);
+  setBar(ui.enemyHealth, ui.enemyHealthText, enemy.health, enemy.maxHealth, false);
+  setBar(ui.enemyStamina, ui.enemyStaminaText, enemy.stamina, enemy.maxStamina, false);
   setBar(ui.enemySpecial, ui.enemySpecialText, enemy.special, 100, true);
 }
 
@@ -745,6 +917,23 @@ function drawFighterBody(fighter, alpha = 1) {
   ctx.closePath();
   ctx.fill();
 
+  // Small body details make each original fighter read differently on the canvas.
+  ctx.strokeStyle = c.detail || c.trim;
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  if (fighter.fighterData.specialType === "lightning") {
+    ctx.moveTo(-12, -108); ctx.lineTo(5, -97); ctx.lineTo(-4, -84); ctx.lineTo(15, -73);
+  } else if (fighter.fighterData.specialType === "clinch") {
+    ctx.strokeRect(-18, -108, 36, 28);
+  } else if (fighter.fighterData.specialType === "roundhouse") {
+    ctx.arc(0, -92, 18, 0.2, Math.PI * 1.45);
+  } else if (fighter.fighterData.specialType === "reversal") {
+    ctx.moveTo(-18, -74); ctx.quadraticCurveTo(0, -122, 18, -74);
+  } else {
+    ctx.moveTo(0, -116); ctx.lineTo(0, -72);
+  }
+  ctx.stroke();
+
   // Arms and gloves change pose for idle, block, punch, kick, and special.
   const attacking = fighter.state === "attack";
   const attackType = fighter.attack?.type;
@@ -805,6 +994,17 @@ function drawFighterBody(fighter, alpha = 1) {
   ctx.quadraticCurveTo(12, -172, -20, -160);
   ctx.closePath();
   ctx.fill();
+  if (fighter.fighterData.specialType === "clinch") {
+    ctx.fillStyle = c.trim;
+    roundRect(-24, -151, 10, 9, 4);
+    roundRect(14, -151, 10, 9, 4);
+  }
+  if (fighter.fighterData.specialType === "roundhouse") {
+    ctx.fillStyle = c.trim;
+    ctx.beginPath();
+    ctx.arc(18, -151, 7, 0, Math.PI * 2);
+    ctx.fill();
+  }
   ctx.fillStyle = "#0b1020";
   ctx.fillRect(5, -146, 5, 3);
   ctx.fillRect(-10, -146, 5, 3);
@@ -869,8 +1069,8 @@ function drawEffects(layer) {
       ctx.fillText(effect.text, effect.x, effect.y);
     }
     if (effect.kind === "flash") {
-      ctx.strokeStyle = effect.blocked ? "#68f7ff" : "#fff1a8";
-      ctx.fillStyle = effect.blocked ? "rgba(104,247,255,0.2)" : "rgba(255,241,168,0.24)";
+      ctx.strokeStyle = effect.blocked ? "#68f7ff" : (effect.color || "#fff1a8");
+      ctx.fillStyle = effect.blocked ? "rgba(104,247,255,0.2)" : (effect.color ? `${effect.color}44` : "rgba(255,241,168,0.24)");
       ctx.lineWidth = 5;
       ctx.beginPath();
       for (let i = 0; i < 12; i++) {
@@ -926,20 +1126,21 @@ window.addEventListener("keydown", (event) => {
   if (gameState !== "playing") return;
   if (key === "w") hop(player);
   if (key === "shift") dash(player);
-  if (key === "j") startAttack(player, "punch");
-  if (key === "k") startAttack(player, "kick");
-  if (key === "i") startAttack(player, "special");
+  if (key === "j") startAttack(player, "punch", enemy);
+  if (key === "k") startAttack(player, "kick", enemy);
+  if (key === "i") startAttack(player, "special", enemy);
 });
 
 window.addEventListener("keyup", (event) => {
   keys.delete(event.key.toLowerCase());
 });
 
-ui.startButton.addEventListener("click", resetGame);
-ui.restartButton.addEventListener("click", resetGame);
+ui.startButton.addEventListener("click", showCharacterSelect);
+ui.restartButton.addEventListener("click", showCharacterSelect);
 
 // Create fighters once so the title screen has a background scene.
-player = createFighter("Rin", 260, 1, COLORS.player, true);
-enemy = createFighter("Kai", 700, -1, COLORS.enemy, false);
+player = createFighter(FIGHTERS[0], 260, 1, true);
+enemy = createFighter(FIGHTERS[1], 700, -1, false);
+renderCharacterCards();
 updateUI();
 requestAnimationFrame(gameLoop);
