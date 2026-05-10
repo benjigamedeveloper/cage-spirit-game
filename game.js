@@ -141,7 +141,8 @@ const SAFE_FIGHTER = {
     defense: 34,
     blockReduction: STATS.blockDamageReduction
   },
-  colors: SAFE_COLORS
+  colors: SAFE_COLORS,
+  visual: { build: "balanced", hair: "hero", stance: "square", emblem: "spirit", aura: "streak", eye: "#eaffff", scaleX: 1, torso: 1, shoulder: 1, leg: 1, guard: 1 }
 };
 
 // Twelve original anime MMA fighters. Cards, stats, colors, AI, visuals, and specials all read from this data.
@@ -268,6 +269,27 @@ const FIGHTERS = [
   }
 ];
 
+
+
+const FIGHTER_VISUALS = {
+  "spirit-brawler": { build: "balanced", hair: "hero", stance: "square", emblem: "spirit", aura: "streak", eye: "#eaffff", scaleX: 1, torso: 1, shoulder: 1, leg: 1, guard: 1, portraitPose: "hero" },
+  "storm-boxer": { build: "lean", hair: "bolt", stance: "boxer", emblem: "bolt", aura: "lightning", eye: "#fff6a5", scaleX: 0.9, torso: 0.92, shoulder: 0.92, leg: 1.02, guard: 1.18, portraitPose: "boxer" },
+  "iron-wrestler": { build: "heavy", hair: "crop", stance: "grappler", emblem: "plate", aura: "steel", eye: "#eef4ff", scaleX: 1.22, torso: 1.16, shoulder: 1.36, leg: 1.08, guard: 0.82, portraitPose: "heavy" },
+  "flame-kicker": { build: "striker", hair: "flame", stance: "kicker", emblem: "flame", aura: "flame", eye: "#fff1a8", scaleX: 0.96, torso: 0.96, shoulder: 0.98, leg: 1.22, guard: 0.9, portraitPose: "kicker" },
+  "shadow-counter": { build: "counter", hair: "veil", stance: "counter", emblem: "moon", aura: "shadow", eye: "#dcb8ff", scaleX: 0.94, torso: 1, shoulder: 1, leg: 0.96, guard: 1.06, portraitPose: "shadow" },
+  "gravity-monk": { build: "monk", hair: "topknot", stance: "monk", emblem: "orbit", aura: "gravity", eye: "#eadcff", scaleX: 1.02, torso: 1.06, shoulder: 1.05, leg: 1, guard: 0.72, portraitPose: "monk" },
+  "frost-judoka": { build: "judoka", hair: "swept", stance: "judoka", emblem: "snow", aura: "ice", eye: "#eaffff", scaleX: 1.04, torso: 1.05, shoulder: 1.12, leg: 1.02, guard: 0.96, portraitPose: "judoka" },
+  "neon-assassin": { build: "assassin", hair: "neon", stance: "low", emblem: "neon", aura: "neon", eye: "#7fffff", scaleX: 0.84, torso: 0.9, shoulder: 0.84, leg: 1.12, guard: 1.12, portraitPose: "assassin" },
+  "crimson-oni": { build: "brute", hair: "horns", stance: "brute", emblem: "oni", aura: "crimson", eye: "#ffd1d9", scaleX: 1.18, torso: 1.1, shoulder: 1.28, leg: 1.04, guard: 0.78, portraitPose: "brute" },
+  "solar-champion": { build: "champion", hair: "crown", stance: "champion", emblem: "sun", aura: "solar", eye: "#fff9d7", scaleX: 1, torso: 1, shoulder: 1.06, leg: 1.02, guard: 1.02, portraitPose: "champion" },
+  "vortex-ninja": { build: "ninja", hair: "tail", stance: "evasive", emblem: "vortex", aura: "wind", eye: "#cafff4", scaleX: 0.88, torso: 0.94, shoulder: 0.9, leg: 1.16, guard: 1.2, portraitPose: "ninja" },
+  "dragon-guard": { build: "guardian", hair: "crest", stance: "guard", emblem: "dragon", aura: "dragon", eye: "#edfff2", scaleX: 1.16, torso: 1.12, shoulder: 1.24, leg: 1.04, guard: 0.88, portraitPose: "guard" }
+};
+
+function getFighterVisual(fighterData = {}) {
+  return { ...(FIGHTER_VISUALS[SAFE_FIGHTER.id] || {}), ...(FIGHTER_VISUALS[fighterData.id] || {}), ...(fighterData.visual || {}) };
+}
+
 const FIGHTER_RATINGS = Object.fromEntries(FIGHTERS.map((fighter) => [fighter.id, fighter.ratings]));
 
 const COLORS = {
@@ -359,7 +381,8 @@ function normalizeFighterData(fighterData = {}) {
       defense: clampNumber(sourceStats.defense, 0, 100, SAFE_FIGHTER.stats.defense),
       blockReduction: clampNumber(sourceStats.blockReduction, 0, 0.95, SAFE_FIGHTER.stats.blockReduction)
     },
-    colors
+    colors,
+    visual: getFighterVisual(fighterData)
   };
 }
 
@@ -489,17 +512,24 @@ function renderCharacterCards() {
     card.className = `fighter-card${fighter.id === selectedFighterId ? " selected" : ""}`;
     card.type = "button";
     card.dataset.fighterId = fighter.id;
+    card.dataset.pose = fighter.visual.portraitPose || fighter.visual.stance || "hero";
+    card.dataset.aura = fighter.visual.aura || fighter.specialType;
     card.style.setProperty("--card-accent", fighter.colors.suit);
     card.style.setProperty("--card-dark", fighter.colors.shorts);
+    card.style.setProperty("--card-trim", fighter.colors.trim);
+    card.style.setProperty("--card-hair", fighter.colors.hair);
+    card.style.setProperty("--card-skin", fighter.colors.skin);
     card.innerHTML = `
       <div class="rating-badge"><b>${fighter.ratings.ovr}</b><span>OVR</span></div>
-      <div class="fighter-portrait" aria-hidden="true"><span></span></div>
+      <div class="fighter-portrait" aria-hidden="true">
+        <i class="portrait-aura"></i><i class="portrait-leg back"></i><i class="portrait-leg front"></i><i class="portrait-body"></i><i class="portrait-head"></i><i class="portrait-hair"></i><i class="portrait-arm left"></i><i class="portrait-arm right"></i><i class="portrait-glow"></i>
+      </div>
       <div class="card-topline"><span>${fighter.difficulty}</span><span>${fighter.theme}</span></div>
       <h3>${fighter.name}</h3>
       <p class="fighter-style">${fighter.role}</p>
       <p class="fighter-desc">${fighter.description}</p>
       <div class="stat-bars small-stats">${buildStatBars(fighter)}</div>
-      <p class="fighter-special">Special Move: ${fighter.specialName}</p>
+      <p class="fighter-special"><span>Special Move</span>${fighter.specialName}</p>
       <p class="ability-desc"><strong>Strengths:</strong> ${fighter.strengths.join(", ")}</p>
       <p class="ability-desc"><strong>Weaknesses:</strong> ${fighter.weaknesses.join(", ")}</p>
       <p class="ability-desc">${fighter.specialDescription}</p>
@@ -556,6 +586,10 @@ function updateFighterPreview() {
   if (!selectedFighterId) {
     const sample = normalizeFighterData(FIGHTERS[0]);
     ui.fighterPreview.style.setProperty("--card-accent", sample.colors.suit);
+    ui.fighterPreview.style.setProperty("--card-dark", sample.colors.shorts);
+    ui.fighterPreview.style.setProperty("--card-trim", sample.colors.trim);
+    ui.fighterPreview.style.setProperty("--card-hair", sample.colors.hair);
+    ui.fighterPreview.style.setProperty("--card-skin", sample.colors.skin);
     ui.fighterPreview.innerHTML = `
       <p class="eyebrow">Pick a Fighter</p>
       <h3>No fighter selected yet</h3>
@@ -569,10 +603,16 @@ function updateFighterPreview() {
   const rivals = FIGHTERS.map(normalizeFighterData).filter((item) => item.id !== fighter.id);
   const previewRival = normalizeFighterData(rivals[0] || FIGHTERS[1] || SAFE_FIGHTER);
   ui.fighterPreview.style.setProperty("--card-accent", fighter.colors.suit);
+  ui.fighterPreview.style.setProperty("--card-dark", fighter.colors.shorts);
+  ui.fighterPreview.style.setProperty("--card-trim", fighter.colors.trim);
+  ui.fighterPreview.style.setProperty("--card-hair", fighter.colors.hair);
+  ui.fighterPreview.style.setProperty("--card-skin", fighter.colors.skin);
   ui.fighterPreview.style.setProperty("--rival-accent", previewRival.colors.suit);
+  ui.fighterPreview.dataset.pose = fighter.visual.portraitPose || fighter.visual.stance || "hero";
   ui.fighterPreview.innerHTML = `
     <p class="eyebrow">Selected Fighter</p>
     <h3>${fighter.name} <span class="preview-ovr">${fighter.ratings.ovr} OVR</span></h3>
+    <div class="preview-stage" aria-hidden="true"><i class="portrait-aura"></i><i class="portrait-leg back"></i><i class="portrait-leg front"></i><i class="portrait-body"></i><i class="portrait-head"></i><i class="portrait-hair"></i><i class="portrait-arm left"></i><i class="portrait-arm right"></i><i class="portrait-glow"></i></div>
     <div class="preview-versus">
       <div><strong>${fighter.name}</strong><span>${fighter.role}</span></div>
       <b>VS</b>
@@ -1537,86 +1577,141 @@ function draw() {
 }
 
 function drawArena() {
-  const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-  gradient.addColorStop(0, "#18275a");
-  gradient.addColorStop(0.45, "#080b17");
-  gradient.addColorStop(1, "#18101b");
-  ctx.fillStyle = gradient;
+  const sky = ctx.createLinearGradient(0, 0, 0, canvas.height);
+  sky.addColorStop(0, "#121944");
+  sky.addColorStop(0.36, "#070914");
+  sky.addColorStop(0.72, "#090610");
+  sky.addColorStop(1, "#050309");
+  ctx.fillStyle = sky;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  // Crowd silhouettes.
-  ctx.fillStyle = "rgba(0, 0, 0, 0.32)";
-  for (let i = 0; i < 28; i++) {
-    const x = i * 38 + (i % 2) * 9;
-    const h = 28 + (i % 5) * 8;
-    ctx.fillRect(x, 248 - h, 24, h);
-    ctx.beginPath();
-    ctx.arc(x + 12, 242 - h, 10, 0, Math.PI * 2);
-    ctx.fill();
+  // Atmospheric haze and tournament wall glow.
+  for (const glow of [
+    { x: 160, y: 70, r: 260, c: "rgba(104,247,255,0.18)" },
+    { x: 800, y: 82, r: 280, c: "rgba(255,77,118,0.16)" },
+    { x: 480, y: 95, r: 330, c: "rgba(247,216,74,0.1)" }
+  ]) {
+    const g = ctx.createRadialGradient(glow.x, glow.y, 10, glow.x, glow.y, glow.r);
+    g.addColorStop(0, glow.c);
+    g.addColorStop(1, "rgba(0,0,0,0)");
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, canvas.width, STATS.groundY + 40);
   }
 
-  // Glowing overhead lights.
-  for (const light of [{ x: 140, c: "#68f7ff" }, { x: 480, c: "#f7d84a" }, { x: 820, c: "#ff4d76" }]) {
-    const cone = ctx.createRadialGradient(light.x, 54, 10, light.x, 190, 260);
-    cone.addColorStop(0, `${light.c}88`);
+  // Layered crowd silhouettes with occasional glow sticks.
+  for (let row = 0; row < 3; row++) {
+    ctx.fillStyle = `rgba(0, 0, 0, ${0.28 + row * 0.14})`;
+    const baseY = 242 + row * 23;
+    for (let i = 0; i < 34; i++) {
+      const x = i * 31 + (row % 2) * 13;
+      const h = 18 + ((i + row) % 5) * 7;
+      ctx.fillRect(x, baseY - h, 20, h);
+      ctx.beginPath();
+      ctx.arc(x + 10, baseY - h - 4, 8, 0, Math.PI * 2);
+      ctx.fill();
+      if ((i + row) % 11 === 0) {
+        ctx.strokeStyle = row % 2 ? "rgba(255,77,118,0.46)" : "rgba(104,247,255,0.46)";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(x + 5, baseY - h - 22);
+        ctx.lineTo(x + 5, baseY - h - 8);
+        ctx.stroke();
+      }
+    }
+  }
+
+  // Overhead truss, light bars, and cones.
+  ctx.strokeStyle = "rgba(238,244,255,0.18)";
+  ctx.lineWidth = 4;
+  ctx.beginPath();
+  ctx.moveTo(70, 48); ctx.lineTo(890, 48);
+  ctx.moveTo(110, 26); ctx.lineTo(850, 26);
+  ctx.stroke();
+  for (let i = 0; i < 9; i++) {
+    const x = 110 + i * 92;
+    ctx.strokeStyle = "rgba(238,244,255,0.14)";
+    ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(x, 26); ctx.lineTo(x + 42, 48); ctx.stroke();
+  }
+  for (const light of [{ x: 150, c: "#68f7ff" }, { x: 480, c: "#f7d84a" }, { x: 810, c: "#ff4d76" }]) {
+    const cone = ctx.createRadialGradient(light.x, 58, 10, light.x, 220, 300);
+    cone.addColorStop(0, `${light.c}70`);
     cone.addColorStop(1, "rgba(255,255,255,0)");
     ctx.fillStyle = cone;
     ctx.beginPath();
-    ctx.ellipse(light.x, 170, 210, 170, 0, 0, Math.PI * 2);
+    ctx.ellipse(light.x, 205, 225, 190, 0, 0, Math.PI * 2);
     ctx.fill();
     ctx.fillStyle = light.c;
-    ctx.fillRect(light.x - 42, 38, 84, 8);
+    roundRect(light.x - 46, 42, 92, 10, 5);
   }
 
-  // Neon cage fence: two diagonal layers and cage posts.
-  ctx.strokeStyle = "rgba(104, 247, 255, 0.2)";
+  // Hex cage: angled mesh, posts, and bright upper/lower rails.
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(40, 70, canvas.width - 80, STATS.groundY - 42);
+  ctx.clip();
+  ctx.strokeStyle = "rgba(104, 247, 255, 0.18)";
   ctx.lineWidth = 2;
-  for (let x = -canvas.height; x < canvas.width; x += 38) {
-    ctx.beginPath();
-    ctx.moveTo(x, 72);
-    ctx.lineTo(x + canvas.height, STATS.groundY + 18);
-    ctx.stroke();
+  for (let x = -canvas.height; x < canvas.width + canvas.height; x += 34) {
+    ctx.beginPath(); ctx.moveTo(x, 70); ctx.lineTo(x + canvas.height * 0.9, STATS.groundY + 18); ctx.stroke();
   }
   ctx.strokeStyle = "rgba(255, 77, 118, 0.13)";
-  for (let x = 0; x < canvas.width + canvas.height; x += 38) {
-    ctx.beginPath();
-    ctx.moveTo(x, 72);
-    ctx.lineTo(x - canvas.height, STATS.groundY + 18);
-    ctx.stroke();
+  for (let x = 0; x < canvas.width + canvas.height; x += 34) {
+    ctx.beginPath(); ctx.moveTo(x, 70); ctx.lineTo(x - canvas.height * 0.9, STATS.groundY + 18); ctx.stroke();
   }
-  ctx.strokeStyle = "rgba(238, 244, 255, 0.22)";
+  ctx.restore();
+  ctx.strokeStyle = "rgba(238,244,255,0.28)";
   ctx.lineWidth = 7;
-  for (const postX of [62, 220, 740, 898]) {
-    ctx.beginPath();
-    ctx.moveTo(postX, 68);
-    ctx.lineTo(postX, STATS.groundY + 22);
-    ctx.stroke();
+  for (const postX of [58, 212, 748, 902]) {
+    ctx.beginPath(); ctx.moveTo(postX, 64); ctx.lineTo(postX, STATS.groundY + 24); ctx.stroke();
+    ctx.strokeStyle = "rgba(104,247,255,0.26)";
+    ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(postX + 8, 70); ctx.lineTo(postX + 8, STATS.groundY + 18); ctx.stroke();
+    ctx.strokeStyle = "rgba(238,244,255,0.28)";
+    ctx.lineWidth = 7;
   }
+  ctx.strokeStyle = "rgba(184,250,255,0.44)";
+  ctx.lineWidth = 5;
+  ctx.beginPath(); ctx.moveTo(50, 72); ctx.lineTo(910, 72); ctx.moveTo(42, STATS.groundY + 21); ctx.lineTo(918, STATS.groundY + 21); ctx.stroke();
 
-  // Arena floor with painted octagon and perspective grid.
-  const floor = ctx.createLinearGradient(0, STATS.groundY - 15, 0, canvas.height);
-  floor.addColorStop(0, "#242849");
-  floor.addColorStop(1, "#0b0710");
+  // Arena floor with perspective texture, sponsor mark, and fighter contact area.
+  const floor = ctx.createLinearGradient(0, STATS.groundY - 20, 0, canvas.height);
+  floor.addColorStop(0, "#252b4b");
+  floor.addColorStop(0.45, "#121426");
+  floor.addColorStop(1, "#07040a");
   ctx.fillStyle = floor;
   ctx.fillRect(0, STATS.groundY + 18, canvas.width, canvas.height - STATS.groundY);
-  ctx.strokeStyle = "rgba(255, 255, 255, 0.24)";
-  ctx.lineWidth = 4;
-  ctx.beginPath();
-  ctx.ellipse(canvas.width / 2, STATS.groundY + 45, 370, 72, 0, 0, Math.PI * 2);
-  ctx.stroke();
-  ctx.strokeStyle = "rgba(104, 247, 255, 0.15)";
+  ctx.strokeStyle = "rgba(255,255,255,0.09)";
   ctx.lineWidth = 1;
-  for (let i = 0; i < 10; i++) {
+  for (let i = 0; i < 14; i++) {
     ctx.beginPath();
-    ctx.moveTo(120 + i * 80, STATS.groundY + 22);
-    ctx.lineTo(70 + i * 95, canvas.height);
+    ctx.moveTo(40 + i * 70, STATS.groundY + 22);
+    ctx.lineTo(-90 + i * 92, canvas.height);
     ctx.stroke();
   }
-
-  ctx.fillStyle = "rgba(104, 247, 255, 0.09)";
-  ctx.font = "900 66px Trebuchet MS";
+  for (let i = 0; i < 5; i++) {
+    ctx.beginPath();
+    ctx.ellipse(canvas.width / 2, STATS.groundY + 45 + i * 24, 370 + i * 42, 72 + i * 20, 0, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+  ctx.strokeStyle = "rgba(247,216,74,0.34)";
+  ctx.lineWidth = 4;
+  ctx.beginPath();
+  for (let i = 0; i < 8; i++) {
+    const a = Math.PI / 8 + i * Math.PI / 4;
+    const x = canvas.width / 2 + Math.cos(a) * 300;
+    const y = STATS.groundY + 50 + Math.sin(a) * 66;
+    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+  }
+  ctx.closePath();
+  ctx.stroke();
+  ctx.fillStyle = "rgba(104, 247, 255, 0.08)";
+  ctx.font = "900 74px Trebuchet MS";
   ctx.textAlign = "center";
-  ctx.fillText("CAGE SPIRIT", canvas.width / 2, 190);
+  ctx.fillText("CAGE SPIRIT", canvas.width / 2, 194);
+  ctx.fillStyle = "rgba(255,255,255,0.035)";
+  ctx.font = "900 52px Trebuchet MS";
+  ctx.fillText("DARK TOURNAMENT", canvas.width / 2, STATS.groundY + 82);
 }
 
 function drawFighter(fighter) {
@@ -1657,168 +1752,318 @@ function drawFighter(fighter) {
 
 function drawFighterBody(fighter, alpha = 1) {
   const c = { ...SAFE_COLORS, ...(fighter.colors || {}) };
-  const specialType = fighter.fighterData?.specialType || "rush";
+  const data = fighter.fighterData || {};
+  const visual = data.visual || getFighterVisual(data);
+  const specialType = data.specialType || "rush";
+  const t = performance.now() / 1000;
+  const attacking = fighter.state === "attack";
+  const attackType = fighter.attack?.type;
+  const attackProgress = fighter.attack ? clampNumber(fighter.attack.elapsed / Math.max(0.01, fighter.attack.windup + fighter.attack.active + fighter.attack.recovery), 0, 1, 0) : 0;
+  const punchPose = attacking && ["punch", "combo", "special"].includes(attackType);
+  const kickPose = attacking && ["kick", "combo", "special"].includes(attackType);
+  const blockPose = fighter.blocking || fighter.guardBroken;
+  const sx = visual.scaleX || 1;
+  const shoulder = 31 * (visual.shoulder || 1);
+  const torso = visual.torso || 1;
+  const leg = visual.leg || 1;
+  const guard = visual.guard || 1;
+  const idleBreath = Math.sin(t * 7 + (visual.scaleX || 1)) * 1.6;
+
+  ctx.save();
   ctx.globalAlpha *= alpha;
   ctx.lineCap = "round";
   ctx.lineJoin = "round";
+  ctx.scale(sx, 1);
 
-  const attacking = fighter.state === "attack";
-  const attackType = fighter.attack?.type;
-  const kicking = attacking && (attackType === "kick" || attackType === "combo" || attackType === "special");
+  drawAuraGlyph(c, visual, specialType, fighter.special >= fighter.maxSpecial || attackType === "special", t);
 
-  // Back leg, front leg, shoes. Kicks animate the existing front leg only, never a third limb.
-  drawLimb(-10, -54, -21, -8, 13, c.skin);
-  if (kicking) drawLimb(12, -54, attackType === "special" ? 82 : 66, -45, 14, c.skin);
-  else drawLimb(12, -54, 24, -9, 13, c.skin);
-  ctx.fillStyle = c.shoe;
-  roundRect(-35, -12, 26, 12, 5);
-  if (kicking) roundRect(attackType === "special" ? 72 : 57, -52, 28, 14, 6);
-  else roundRect(9, -12, 33, 12, 5);
+  // Grounded contact shadow sells weight before limb details are drawn.
+  ctx.fillStyle = "rgba(0,0,0,0.36)";
+  ctx.beginPath();
+  ctx.ellipse(0, 2, 48 / sx, 10, 0, 0, Math.PI * 2);
+  ctx.fill();
 
-  // Angular shorts with waistband and side stripe.
+  const rearHip = { x: -14, y: -58 };
+  const frontHip = { x: 14, y: -58 };
+  const rearKnee = { x: -28, y: -31 + idleBreath * 0.3 };
+  const rearFoot = { x: -39, y: -4 };
+  let frontKnee = { x: 25, y: -30 - idleBreath * 0.2 };
+  let frontFoot = { x: 42, y: -4 };
+
+  if (kickPose) {
+    const ext = attackType === "special" ? 92 : attackType === "combo" ? 76 : 68;
+    const lift = attackType === "special" ? -60 : -48;
+    frontKnee = { x: 38 + attackProgress * 12, y: -60 };
+    frontFoot = { x: ext, y: lift + Math.sin(attackProgress * Math.PI) * -10 };
+  } else if (visual.stance === "low" || visual.stance === "evasive") {
+    frontFoot.x += 12;
+    frontKnee.y += 8;
+    rearFoot.x -= 8;
+  } else if (["grappler", "brute", "guard"].includes(visual.stance)) {
+    frontFoot.x += 5;
+    rearFoot.x -= 5;
+  }
+
+  drawSegment(rearHip, rearKnee, 15 * leg, c.skin, c.trim);
+  drawSegment(rearKnee, rearFoot, 13 * leg, c.skin, c.trim);
+  drawSegment(frontHip, frontKnee, 15 * leg, c.skin, c.trim);
+  drawSegment(frontKnee, frontFoot, 13 * leg, c.skin, c.trim);
+  drawShoe(rearFoot.x - 13, rearFoot.y - 8, 30, 13, c.shoe, c.trim);
+  drawShoe(frontFoot.x - (kickPose ? 12 : 13), frontFoot.y - 8, kickPose ? 34 : 34, 14, c.shoe, c.trim);
+
+  // Shorts/waist have asymmetric panels and trim so each palette reads at game size.
   ctx.fillStyle = c.shorts;
   ctx.beginPath();
-  ctx.moveTo(-29, -69);
-  ctx.lineTo(30, -69);
-  ctx.lineTo(22, -34);
-  ctx.lineTo(5, -42);
-  ctx.lineTo(-6, -34);
-  ctx.lineTo(-25, -39);
+  ctx.moveTo(-31, -72);
+  ctx.lineTo(31, -72);
+  ctx.lineTo(27, -42);
+  ctx.lineTo(8, -49);
+  ctx.lineTo(0, -36);
+  ctx.lineTo(-10, -49);
+  ctx.lineTo(-28, -42);
   ctx.closePath();
   ctx.fill();
   ctx.fillStyle = c.trim;
-  ctx.fillRect(-27, -69, 54, 7);
-  ctx.fillRect(17, -61, 5, 21);
+  roundRect(-31, -74, 62, 8, 4);
+  ctx.fillStyle = colorWithAlpha(c.detail || c.trim, 0.7);
+  roundRect(17, -66, 6, 22, 3);
+  if (["judoka", "monk", "guardian"].includes(visual.build)) {
+    ctx.fillStyle = colorWithAlpha(c.trim, 0.82);
+    roundRect(-24, -70, 48, 8, 3);
+  }
 
-  // Torso armor/rashguard shape and shoulders.
+  // Torso silhouette: broader shoulders, clear neck, layered rashguard/gi/armor panels.
+  const topY = -118 - idleBreath;
+  const waistY = -70;
   ctx.fillStyle = c.suit;
   ctx.beginPath();
-  ctx.moveTo(-28, -112);
-  ctx.quadraticCurveTo(0, -128, 30, -112);
-  ctx.lineTo(22, -67);
-  ctx.lineTo(-23, -67);
+  ctx.moveTo(-shoulder, topY + 12);
+  ctx.quadraticCurveTo(0, topY - 13 * torso, shoulder, topY + 12);
+  ctx.lineTo(22 * torso, waistY);
+  ctx.lineTo(-23 * torso, waistY);
   ctx.closePath();
   ctx.fill();
-  ctx.fillStyle = "rgba(255,255,255,0.22)";
+  ctx.fillStyle = colorWithAlpha(c.trim, 0.2);
   ctx.beginPath();
-  ctx.moveTo(-3, -121);
-  ctx.lineTo(18, -72);
-  ctx.lineTo(4, -68);
-  ctx.lineTo(-12, -114);
+  ctx.moveTo(-shoulder + 8, topY + 15);
+  ctx.lineTo(0, waistY - 3);
+  ctx.lineTo(shoulder - 9, topY + 15);
+  ctx.lineTo(14, topY + 2);
+  ctx.lineTo(0, waistY - 18);
+  ctx.lineTo(-14, topY + 2);
   ctx.closePath();
   ctx.fill();
-
-  // Small body details make each original fighter read differently on the canvas.
-  ctx.strokeStyle = c.detail || c.trim;
+  ctx.strokeStyle = colorWithAlpha(c.detail || c.trim, 0.88);
   ctx.lineWidth = 3;
   ctx.beginPath();
-  if (specialType === "lightning") {
-    ctx.moveTo(-12, -108); ctx.lineTo(5, -97); ctx.lineTo(-4, -84); ctx.lineTo(15, -73);
-  } else if (specialType === "clinch") {
-    ctx.strokeRect(-18, -108, 36, 28);
-  } else if (specialType === "roundhouse") {
-    ctx.arc(0, -92, 18, 0.2, Math.PI * 1.45);
-  } else if (specialType === "reversal") {
-    ctx.moveTo(-18, -74); ctx.quadraticCurveTo(0, -122, 18, -74);
-  } else if (specialType === "gravity") {
-    ctx.arc(0, -92, 19, 0, Math.PI * 2);
-    ctx.moveTo(-22, -92); ctx.lineTo(22, -92);
-  } else if (["sweep", "barrage", "breaker", "solar", "cyclone", "shell"].includes(specialType)) {
-    ctx.arc(0, -92, 22, 0.1, Math.PI * 1.7);
-    ctx.moveTo(-18, -108); ctx.lineTo(18, -78);
-  } else {
-    ctx.moveTo(0, -116); ctx.lineTo(0, -72);
-  }
+  drawChestMark(visual.emblem, specialType);
   ctx.stroke();
-
-  // Arms and gloves change pose for idle, block, punch, kick, and special.
-  ctx.lineWidth = 12;
-  ctx.strokeStyle = c.skin;
-  ctx.beginPath();
-  if (fighter.blocking || fighter.guardBroken) {
-    ctx.moveTo(-22, -103); ctx.lineTo(-9, -131);
-    ctx.moveTo(22, -103); ctx.lineTo(10, -128);
-  } else if (attacking && (attackType === "punch" || attackType === "combo" || attackType === "special")) {
-    const reach = attackType === "special" ? 76 : attackType === "combo" ? 62 : 50;
-    ctx.moveTo(22, -102); ctx.lineTo(reach, -108);
-    ctx.moveTo(-20, -101); ctx.lineTo(-33, -83);
-  } else {
-    ctx.moveTo(-22, -102); ctx.lineTo(-39, -84);
-    ctx.moveTo(22, -102); ctx.lineTo(38, -87);
-  }
-  ctx.stroke();
-
-
-  // Gloves/wraps.
-  ctx.fillStyle = c.glove;
-  if (fighter.blocking || fighter.guardBroken) {
-    roundRect(-20, -140, 21, 19, 8);
-    roundRect(1, -138, 22, 19, 8);
-  } else if (attacking && (attackType === "punch" || attackType === "combo" || attackType === "special")) {
-    roundRect(attackType === "special" ? 67 : attackType === "combo" ? 53 : 42, -118, 24, 19, 8);
-    roundRect(-44, -92, 21, 18, 8);
-  } else {
-    roundRect(-48, -93, 21, 18, 8);
-    roundRect(29, -96, 22, 18, 8);
+  ctx.fillStyle = colorWithAlpha(c.trim, 0.8);
+  if (["heavy", "brute", "guardian"].includes(visual.build)) {
+    roundRect(-shoulder - 5, topY + 10, 17, 12, 5);
+    roundRect(shoulder - 12, topY + 10, 17, 12, 5);
   }
 
-  // Neck, head, face, and anime hair silhouette.
+  const leftShoulder = { x: -shoulder + 3, y: topY + 17 };
+  const rightShoulder = { x: shoulder - 3, y: topY + 17 };
+  let leftElbow = { x: -42, y: -91 };
+  let leftHand = { x: -51, y: -78 };
+  let rightElbow = { x: 43, y: -92 };
+  let rightHand = { x: 49, y: -80 };
+
+  if (blockPose) {
+    leftElbow = { x: -25 * guard, y: -119 };
+    leftHand = { x: -11 * guard, y: -139 };
+    rightElbow = { x: 25 * guard, y: -117 };
+    rightHand = { x: 13 * guard, y: -136 };
+  } else if (punchPose) {
+    const reach = attackType === "special" ? 86 : attackType === "combo" ? 70 : 58;
+    rightElbow = { x: 43, y: -111 };
+    rightHand = { x: reach, y: -113 - Math.sin(attackProgress * Math.PI) * 5 };
+    leftElbow = { x: -28, y: -104 };
+    leftHand = { x: -39, y: -88 };
+  } else if (visual.stance === "boxer") {
+    leftElbow = { x: -24, y: -112 };
+    leftHand = { x: -10, y: -132 };
+    rightElbow = { x: 29, y: -111 };
+    rightHand = { x: 18, y: -129 };
+  } else if (visual.stance === "monk") {
+    leftElbow = { x: -38, y: -103 };
+    leftHand = { x: -24, y: -116 };
+    rightElbow = { x: 39, y: -103 };
+    rightHand = { x: 25, y: -116 };
+  } else if (["grappler", "brute", "guard"].includes(visual.stance)) {
+    leftElbow = { x: -48, y: -92 };
+    leftHand = { x: -45, y: -73 };
+    rightElbow = { x: 48, y: -91 };
+    rightHand = { x: 45, y: -74 };
+  }
+
+  drawSegment(leftShoulder, leftElbow, 13, c.skin, c.trim);
+  drawSegment(leftElbow, leftHand, 11, c.skin, c.glove);
+  drawSegment(rightShoulder, rightElbow, 13, c.skin, c.trim);
+  drawSegment(rightElbow, rightHand, 11, c.skin, c.glove);
+  drawGlove(leftHand.x - 10, leftHand.y - 9, c.glove, c.trim);
+  drawGlove(rightHand.x - 10, rightHand.y - 9, c.glove, c.trim);
+
+  // Neck, head, facial details, and unique anime hair silhouettes.
   ctx.fillStyle = c.skin;
-  roundRect(-9, -128, 18, 16, 6);
+  roundRect(-10, -132, 20, 18, 7);
   ctx.beginPath();
-  ctx.arc(0, -143, 20, 0, Math.PI * 2);
+  ctx.arc(0, -148, 21, 0, Math.PI * 2);
   ctx.fill();
-  ctx.fillStyle = c.hair;
-  ctx.beginPath();
-  ctx.moveTo(-21, -151);
-  ctx.lineTo(-11, -169);
-  ctx.lineTo(-4, -153);
-  ctx.lineTo(7, -170);
-  ctx.lineTo(13, -153);
-  ctx.lineTo(24, -158);
-  ctx.quadraticCurveTo(12, -172, -20, -160);
-  ctx.closePath();
-  ctx.fill();
-  if (specialType === "clinch") {
-    ctx.fillStyle = c.trim;
-    roundRect(-24, -151, 10, 9, 4);
-    roundRect(14, -151, 10, 9, 4);
-  }
-  if (specialType === "roundhouse") {
-    ctx.fillStyle = c.trim;
-    ctx.beginPath();
-    ctx.arc(18, -151, 7, 0, Math.PI * 2);
-    ctx.fill();
-  }
-  if (specialType === "gravity" || specialType === "shell") {
-    ctx.strokeStyle = c.trim;
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.arc(0, -144, specialType === "shell" ? 31 : 27, 0.2, Math.PI * 1.35);
-    ctx.stroke();
-  }
-  if (["barrage", "cyclone"].includes(specialType)) {
-    ctx.fillStyle = c.trim;
-    ctx.beginPath();
-    ctx.moveTo(-22, -156); ctx.lineTo(-34, -149); ctx.lineTo(-20, -144);
-    ctx.fill();
-  }
-  ctx.fillStyle = "#0b1020";
-  ctx.fillRect(5, -146, 5, 3);
-  ctx.fillRect(-10, -146, 5, 3);
-  ctx.strokeStyle = "rgba(0,0,0,0.35)";
+  drawHairShape(visual.hair, c);
+  ctx.fillStyle = visual.eye || "#0b1020";
+  roundRect(-12, -151, 7, 3, 1.5);
+  roundRect(6, -151, 7, 3, 1.5);
+  ctx.strokeStyle = "rgba(0,0,0,0.42)";
   ctx.lineWidth = 2;
   ctx.beginPath();
-  ctx.moveTo(-6, -136);
-  ctx.quadraticCurveTo(0, -132, 8, -136);
+  ctx.moveTo(-7, -140);
+  ctx.quadraticCurveTo(0, -136, 8, -140);
   ctx.stroke();
+  drawHeadAccessory(visual, c, specialType);
 
   if (fighter.guardBroken) {
     ctx.fillStyle = "#ff4d76";
     ctx.font = "900 16px Trebuchet MS";
     ctx.textAlign = "center";
-    ctx.fillText("STUN", 0, -178);
+    ctx.fillText("STUN", 0, -184);
   }
+  ctx.restore();
+}
+
+function drawSegment(a, b, width, color, accent) {
+  ctx.strokeStyle = color;
+  ctx.lineWidth = width;
+  ctx.beginPath();
+  ctx.moveTo(a.x, a.y);
+  ctx.lineTo(b.x, b.y);
+  ctx.stroke();
+  ctx.strokeStyle = colorWithAlpha(accent || "#ffffff", 0.5);
+  ctx.lineWidth = Math.max(2, width * 0.22);
+  ctx.beginPath();
+  ctx.moveTo(a.x, a.y);
+  ctx.lineTo(b.x, b.y);
+  ctx.stroke();
+}
+
+function drawShoe(x, y, w, h, color, trim) {
+  ctx.fillStyle = color;
+  roundRect(x, y, w, h, 6);
+  ctx.fillStyle = colorWithAlpha(trim, 0.85);
+  roundRect(x + w * 0.58, y + h - 4, w * 0.34, 3, 2);
+}
+
+function drawGlove(x, y, color, trim) {
+  ctx.fillStyle = color;
+  roundRect(x, y, 23, 19, 8);
+  ctx.fillStyle = colorWithAlpha(trim, 0.76);
+  roundRect(x + 3, y + 3, 16, 4, 3);
+}
+
+function drawChestMark(emblem, specialType) {
+  if (emblem === "bolt") { ctx.moveTo(-12, -112); ctx.lineTo(4, -99); ctx.lineTo(-5, -88); ctx.lineTo(15, -74); return; }
+  if (emblem === "plate") { ctx.strokeRect(-19, -111, 38, 32); return; }
+  if (emblem === "flame") { ctx.moveTo(0, -75); ctx.bezierCurveTo(-19, -92, -4, -114, 2, -122); ctx.bezierCurveTo(18, -100, 14, -84, 0, -75); return; }
+  if (emblem === "moon") { ctx.arc(3, -96, 19, 0.45, Math.PI * 1.55); return; }
+  if (emblem === "orbit") { ctx.ellipse(0, -96, 25, 12, -0.4, 0, Math.PI * 2); ctx.moveTo(-22, -96); ctx.lineTo(22, -96); return; }
+  if (emblem === "snow") { for (let i = 0; i < 6; i++) { const a = i * Math.PI / 3; ctx.moveTo(Math.cos(a) * 4, -96 + Math.sin(a) * 4); ctx.lineTo(Math.cos(a) * 22, -96 + Math.sin(a) * 22); } return; }
+  if (emblem === "neon") { ctx.moveTo(-17, -108); ctx.lineTo(17, -108); ctx.lineTo(-12, -78); ctx.lineTo(17, -78); return; }
+  if (emblem === "oni") { ctx.moveTo(-17, -82); ctx.quadraticCurveTo(0, -120, 17, -82); ctx.moveTo(-17, -108); ctx.lineTo(17, -108); return; }
+  if (emblem === "sun") { ctx.arc(0, -96, 15, 0, Math.PI * 2); for (let i = 0; i < 8; i++) { const a = i * Math.PI / 4; ctx.moveTo(Math.cos(a) * 20, -96 + Math.sin(a) * 20); ctx.lineTo(Math.cos(a) * 27, -96 + Math.sin(a) * 27); } return; }
+  if (emblem === "vortex") { ctx.arc(0, -96, 22, 0.2, Math.PI * 1.8); ctx.arc(0, -96, 11, 0.2, Math.PI * 1.4); return; }
+  if (emblem === "dragon") { ctx.moveTo(-19, -83); ctx.bezierCurveTo(-4, -126, 32, -105, 8, -82); return; }
+  ctx.moveTo(0, -116); ctx.lineTo(0, -74);
+}
+
+function drawHairShape(hair, c) {
+  ctx.fillStyle = c.hair;
+  ctx.beginPath();
+  if (hair === "bolt") {
+    ctx.moveTo(-22, -154); ctx.lineTo(-8, -176); ctx.lineTo(-1, -158); ctx.lineTo(14, -178); ctx.lineTo(10, -158); ctx.lineTo(25, -162); ctx.quadraticCurveTo(8, -176, -22, -160);
+  } else if (hair === "crop") {
+    ctx.ellipse(0, -160, 23, 13, 0, Math.PI, Math.PI * 2);
+  } else if (hair === "flame") {
+    ctx.moveTo(-20, -153); ctx.lineTo(-8, -174); ctx.lineTo(-2, -158); ctx.lineTo(7, -182); ctx.lineTo(14, -157); ctx.lineTo(24, -164); ctx.quadraticCurveTo(13, -177, -18, -162);
+  } else if (hair === "veil") {
+    ctx.moveTo(-22, -158); ctx.quadraticCurveTo(-8, -177, 22, -160); ctx.lineTo(18, -133); ctx.quadraticCurveTo(2, -143, -19, -134);
+  } else if (hair === "topknot") {
+    ctx.ellipse(0, -162, 19, 11, 0, Math.PI, Math.PI * 2); ctx.fill(); ctx.beginPath(); ctx.arc(0, -178, 8, 0, Math.PI * 2);
+  } else if (hair === "swept") {
+    ctx.moveTo(-23, -154); ctx.quadraticCurveTo(2, -181, 29, -160); ctx.lineTo(7, -156); ctx.lineTo(-4, -147);
+  } else if (hair === "neon") {
+    ctx.moveTo(-22, -156); ctx.lineTo(-5, -180); ctx.lineTo(2, -158); ctx.lineTo(22, -171); ctx.lineTo(14, -151); ctx.lineTo(-18, -146);
+  } else if (hair === "horns") {
+    ctx.moveTo(-23, -153); ctx.lineTo(-31, -170); ctx.lineTo(-10, -160); ctx.lineTo(0, -171); ctx.lineTo(10, -160); ctx.lineTo(31, -170); ctx.lineTo(23, -153); ctx.quadraticCurveTo(0, -165, -23, -153);
+  } else if (hair === "crown") {
+    ctx.moveTo(-22, -154); ctx.lineTo(-12, -171); ctx.lineTo(-2, -158); ctx.lineTo(8, -173); ctx.lineTo(18, -155); ctx.quadraticCurveTo(5, -166, -22, -154);
+  } else if (hair === "tail") {
+    ctx.ellipse(0, -160, 20, 12, 0, Math.PI, Math.PI * 2); ctx.fill(); ctx.beginPath(); ctx.moveTo(16, -160); ctx.quadraticCurveTo(42, -151, 32, -126); ctx.lineTo(24, -130); ctx.quadraticCurveTo(31, -149, 10, -153);
+  } else if (hair === "crest") {
+    ctx.moveTo(-20, -154); ctx.lineTo(-4, -174); ctx.lineTo(0, -157); ctx.lineTo(14, -172); ctx.lineTo(23, -153); ctx.quadraticCurveTo(4, -166, -20, -154);
+  } else {
+    ctx.moveTo(-21, -151); ctx.lineTo(-11, -169); ctx.lineTo(-4, -153); ctx.lineTo(7, -170); ctx.lineTo(13, -153); ctx.lineTo(24, -158); ctx.quadraticCurveTo(12, -172, -20, -160);
+  }
+  ctx.closePath();
+  ctx.fill();
+}
+
+function drawHeadAccessory(visual, c, specialType) {
+  ctx.strokeStyle = c.trim;
+  ctx.fillStyle = c.trim;
+  ctx.lineWidth = 2.5;
+  if (["gravity", "shell", "dragon"].includes(visual.aura) || ["gravity", "shell"].includes(specialType)) {
+    ctx.beginPath(); ctx.arc(0, -149, specialType === "shell" ? 32 : 28, 0.15, Math.PI * 1.32); ctx.stroke();
+  }
+  if (["assassin", "ninja"].includes(visual.build)) {
+    roundRect(-24, -151, 8, 7, 3); roundRect(16, -151, 8, 7, 3);
+  }
+  if (visual.hair === "horns") {
+    ctx.beginPath(); ctx.moveTo(-22, -162); ctx.lineTo(-36, -175); ctx.moveTo(22, -162); ctx.lineTo(36, -175); ctx.stroke();
+  }
+}
+
+function drawAuraGlyph(c, visual, specialType, energized, t) {
+  const glow = energized ? 1 : 0.42;
+  ctx.save();
+  ctx.globalAlpha *= glow;
+  ctx.strokeStyle = c.suit;
+  ctx.fillStyle = colorWithAlpha(c.suit, energized ? 0.2 : 0.09);
+  ctx.lineWidth = energized ? 4 : 2;
+  if (["gravity", "orbit"].includes(visual.aura) || specialType === "gravity") {
+    ctx.beginPath(); ctx.ellipse(0, -82, 58 + Math.sin(t * 5) * 5, 88, t * 0.4, 0, Math.PI * 2); ctx.stroke();
+    ctx.beginPath(); ctx.ellipse(0, -82, 82, 20, -0.35, 0, Math.PI * 2); ctx.stroke();
+  } else if (["flame", "crimson"].includes(visual.aura)) {
+    for (let i = 0; i < 4; i++) { ctx.beginPath(); ctx.moveTo(-45 + i * 30, -22); ctx.quadraticCurveTo(-32 + i * 30, -70 - Math.sin(t * 6 + i) * 10, -22 + i * 30, -34); ctx.stroke(); }
+  } else if (visual.aura === "lightning") {
+    for (let i = 0; i < 4; i++) { const x = -52 + i * 35; ctx.beginPath(); ctx.moveTo(x, -42); ctx.lineTo(x + 15, -69); ctx.lineTo(x + 4, -72); ctx.lineTo(x + 20, -104); ctx.stroke(); }
+  } else if (visual.aura === "ice") {
+    for (let i = 0; i < 6; i++) { const a = i * Math.PI / 3 + t * 0.2; ctx.beginPath(); ctx.moveTo(Math.cos(a) * 44, -74 + Math.sin(a) * 68); ctx.lineTo(Math.cos(a) * 52, -74 + Math.sin(a) * 80); ctx.stroke(); }
+  } else if (visual.aura === "wind") {
+    ctx.beginPath(); ctx.arc(0, -72, 62, Math.sin(t) * 0.5, Math.PI * 1.45); ctx.stroke(); ctx.beginPath(); ctx.arc(0, -88, 38, Math.PI, Math.PI * 2.35); ctx.stroke();
+  } else if (visual.aura === "dragon") {
+    ctx.beginPath(); ctx.moveTo(-55, -42); ctx.bezierCurveTo(-15, -124, 72, -120, 38, -44); ctx.stroke();
+  } else {
+    ctx.beginPath(); ctx.ellipse(0, -76, 56 + Math.sin(t * 5) * 4, 90, 0, 0, Math.PI * 2); ctx.fill();
+  }
+  ctx.restore();
+}
+
+function colorWithAlpha(color, alpha) {
+  if (!color) return `rgba(255,255,255,${alpha})`;
+  if (color.startsWith("rgba")) return color.replace(/rgba\(([^)]+),\s*[\d.]+\)/, `rgba($1, ${alpha})`);
+  if (color.startsWith("rgb(")) return color.replace("rgb(", "rgba(").replace(")", `, ${alpha})`);
+  const hex = color.replace("#", "");
+  if (hex.length === 3) {
+    const r = parseInt(hex[0] + hex[0], 16), g = parseInt(hex[1] + hex[1], 16), b = parseInt(hex[2] + hex[2], 16);
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  }
+  if (hex.length >= 6) {
+    const r = parseInt(hex.slice(0, 2), 16), g = parseInt(hex.slice(2, 4), 16), b = parseInt(hex.slice(4, 6), 16);
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  }
+  return color;
 }
 
 function drawLimb(x1, y1, x2, y2, width, color) {

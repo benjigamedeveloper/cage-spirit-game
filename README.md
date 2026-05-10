@@ -78,6 +78,17 @@ All characters are original anime MMA fighters created for Cage Spirit.
 | Vortex Ninja | 85 | Evasive movement fighter | Hard | **Cyclone Step** — teal wind spiral movement attack that slips past the opponent. |
 | Dragon Guard | 86 | Tank/blocking fighter | Medium | **Dragon Shell** — green guard aura that improves defense and rewards blocking. |
 
+
+## Visual Presentation Upgrade
+
+Cage Spirit now has a major dark-anime arcade graphics pass focused on making the fighters feel like real original characters instead of simple placeholders. The visual system keeps the project GitHub Pages-friendly while adding:
+
+- Distinct character silhouettes for all 12 fighters, including unique builds, hair shapes, guard poses, stance identities, gloves/wraps, shorts, shoes, facial details, and themed aura motifs.
+- Layered canvas fighter rendering with stronger shoulders, clearer torso/limb anatomy, dynamic idle posture, readable punch/block/kick/special poses, and kicks that animate the existing front leg only.
+- Cinematic arena upgrades: darker underground tournament lighting, truss lights, layered crowd silhouettes, glowing cage mesh, octagon floor markings, perspective floor texture, and atmospheric haze.
+- Premium character select cards with fighter-card portraits, OVR badges, stat bars, themed borders/glows, selected states, role/difficulty labels, special move callouts, and a large selected-fighter preview.
+- Sharper HUD/menu polish with glassy panels, animated meter shine, stronger title treatment, improved VS/options overlays, button gleams, and special meter glow when full.
+
 ## Fighting System
 
 - Punches are quick, low-cost, and good for combo pressure.
