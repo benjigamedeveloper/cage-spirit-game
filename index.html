@@ -20,7 +20,7 @@
           <button id="helpButton" class="primary-button secondary-button" type="button">How to Play / Controls</button>
         </div>
         <div id="helpPanel" class="help-panel hidden">
-          <strong>Keyboard:</strong> A/D move, W hop, Shift dash, J punch, K kick, L block, I special, P pause.
+          <strong>Keyboard:</strong> A/D move, W hop, Shift dash, J punch, K kick, L block, I special, E grab rare pickups, Space timing/Final Clash, P pause.
         </div>
       </div>
     </section>
@@ -115,7 +115,26 @@
       <span>I Special</span>
       <span>Shift Dash</span>
       <span>P Pause</span>
+      <span>E Grab Pickup</span>
+      <span>Space Timing</span>
     </section>
+
+
+    <div id="pickupTimingOverlay" class="pickup-timing-overlay hidden" aria-live="polite">
+      <div class="pickup-timing-card">
+        <p id="pickupTimingTitle" class="pickup-timing-title">Spirit Pickup</p>
+        <h2 id="pickupTimingPrompt">Press Space in the green zone!</h2>
+        <div class="timing-track" aria-hidden="true">
+          <span class="timing-zone timing-red left"></span>
+          <span class="timing-zone timing-yellow left"></span>
+          <span class="timing-zone timing-green"></span>
+          <span class="timing-zone timing-yellow right"></span>
+          <span class="timing-zone timing-red right"></span>
+          <i id="pickupTimingPointer" class="timing-pointer"></i>
+        </div>
+        <p id="pickupTimingHint" class="pickup-timing-hint">SPACE confirms. Green is perfect, yellow is good, red is weak.</p>
+      </div>
+    </div>
 
     <div id="finalClashOverlay" class="final-clash-overlay hidden" aria-live="polite">
       <div class="clash-card">
