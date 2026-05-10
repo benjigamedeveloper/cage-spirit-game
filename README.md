@@ -23,6 +23,8 @@ Title Screen → Character Select → Match Options → VS Screen → Fight → 
 | Kick | `K` |
 | Block | `L` |
 | Special | `I` when meter is full |
+| Grab rare pickup | `E` when close to a pickup |
+| Pickup timing confirm | `Space` during pickup timing bar |
 | Pause / Resume menu | `P` |
 | Final Clash meter | Tap `Space` during Final Clash |
 
@@ -52,6 +54,27 @@ Final Clash is a Timed Match comeback sequence in the last 10 seconds.
 - Spacebar taps are rate-limited so holding the key cannot break the sequence.
 - Final Clash damage is capped around 10–25 and can finish only a low-health opponent.
 - If the meters are close, both fighters are pushed back and the round continues to decision.
+
+## Rare Comeback Pickups
+
+Cage Spirit includes a rare comeback pickup system designed to create clutch anime-arcade moments without deciding every match. Pickups appear only during active fights after the match has been running for at least 20 seconds, never during menus, the VS screen, win/lose screens, pause, or Final Clash. Only one pickup can exist at a time, each pickup fades after a short time, and collection or timeout starts a long 25–35 second cooldown.
+
+Pickup types:
+
+- **Health Pickup** — a glowing green/blue spirit orb labeled **HEALTH**. It is rare, but slightly more likely when a fighter is below 35% health.
+- **Power Pickup** — a red/gold energy shard labeled **POWER**. It is rarer than health and gives special meter plus a short modest power aura on better timing.
+
+How pickups work:
+
+1. Move close to the pickup.
+2. Press `E` when **Press E to grab** appears.
+3. Press `Space` during the quick timing bar. Green gives the best result, yellow gives a weaker result, and red or timeout gives a tiny or failed result.
+
+Balanced effects:
+
+- Health Pickup restores up to 20 health on perfect timing, 10 on good timing, and only a tiny/no heal on weak or missed timing. Health is capped at the fighter's max health.
+- Power Pickup can add up to 35 special meter and a short +15% damage aura on perfect timing, with a smaller meter gain and shorter aura on good timing. The boost does not stack infinitely.
+- The AI can sometimes move toward and attempt pickups when it makes sense, but it is imperfect and can miss the timing game.
 
 ## Randomiser Options
 

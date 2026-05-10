@@ -1785,3 +1785,83 @@ body::after {
     --figure-scale: 1.06;
   }
 }
+
+.pickup-timing-overlay {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  display: grid;
+  place-items: end center;
+  padding: 20px 20px 90px;
+  background: radial-gradient(circle at 50% 64%, rgba(104, 247, 255, 0.14), transparent 30%);
+}
+
+.pickup-timing-card {
+  width: min(640px, 94%);
+  padding: 18px 22px 22px;
+  border: 1px solid rgba(247, 216, 74, 0.66);
+  border-radius: 22px;
+  background: rgba(13, 18, 36, 0.86);
+  text-align: center;
+  box-shadow: 0 0 34px rgba(247, 216, 74, 0.26), inset 0 0 24px rgba(255,255,255,0.06);
+}
+
+.pickup-timing-title {
+  margin: 0 0 4px;
+  color: var(--accent);
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.pickup-timing-card h2 {
+  margin: 0 0 14px;
+  color: #fff1a8;
+  font-size: clamp(22px, 4vw, 34px);
+  text-transform: uppercase;
+  text-shadow: 0 0 16px rgba(247,216,74,0.65);
+}
+
+.timing-track {
+  position: relative;
+  height: 30px;
+  overflow: hidden;
+  border: 2px solid rgba(255,255,255,0.28);
+  border-radius: 999px;
+  background: #320915;
+  box-shadow: inset 0 0 18px rgba(0,0,0,0.55), 0 0 16px rgba(104,247,255,0.2);
+}
+
+.timing-zone {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+}
+
+.timing-red.left { left: 0; width: 30%; background: linear-gradient(90deg, #862043, #e23d61); }
+.timing-yellow.left { left: 30%; width: 13%; background: linear-gradient(90deg, #e2753d, #f7d84a); }
+.timing-green { left: 43%; width: 14%; background: linear-gradient(90deg, #38e577, #b8ffcf); box-shadow: 0 0 22px rgba(101,255,143,0.8); }
+.timing-yellow.right { left: 57%; width: 13%; background: linear-gradient(90deg, #f7d84a, #e2753d); }
+.timing-red.right { left: 70%; width: 30%; background: linear-gradient(90deg, #e23d61, #862043); }
+
+.timing-pointer {
+  position: absolute;
+  top: -8px;
+  left: 0%;
+  width: 6px;
+  height: 46px;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: 0 0 12px #fff, 0 0 22px var(--accent);
+  transform: translateX(-50%);
+}
+
+.pickup-timing-hint {
+  margin: 12px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}

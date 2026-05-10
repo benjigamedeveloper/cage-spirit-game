@@ -63,7 +63,12 @@ const ui = {
   pauseRematchButton: document.getElementById("pauseRematchButton"),
   pauseSelectButton: document.getElementById("pauseSelectButton"),
   pauseMainMenuButton: document.getElementById("pauseMainMenuButton"),
-  controlsGuide: document.getElementById("controlsGuide")
+  controlsGuide: document.getElementById("controlsGuide"),
+  pickupTimingOverlay: document.getElementById("pickupTimingOverlay"),
+  pickupTimingTitle: document.getElementById("pickupTimingTitle"),
+  pickupTimingPrompt: document.getElementById("pickupTimingPrompt"),
+  pickupTimingPointer: document.getElementById("pickupTimingPointer"),
+  pickupTimingHint: document.getElementById("pickupTimingHint")
 };
 
 // Easy balancing knobs for beginners.
@@ -96,6 +101,30 @@ const MAX_SPECIAL = 100;
 // 75 seconds fits the current medium-paced damage, stamina costs, and regen: long enough for specials, short enough to avoid dragging.
 const ROUND_TIME_SECONDS = 75;
 const FINAL_CLASH_SECONDS = 10;
+const PICKUP_RULES = {
+  minSpawnTime: 20,
+  cooldownMin: 25,
+  cooldownMax: 35,
+  lifetime: 9,
+  spawnCheckInterval: 1,
+  interactRange: 82,
+  healthLowThreshold: 0.35,
+  healthGreenRestore: 20,
+  healthYellowRestore: 10,
+  healthWeakRestore: 4,
+  powerGreenSpecial: 35,
+  powerYellowSpecial: 15,
+  powerWeakSpecial: 5,
+  powerGreenBoost: 6,
+  powerYellowBoost: 3,
+  powerDamageMultiplier: 1.15,
+  timingDuration: 2.65,
+  timingSpeed: 0.78,
+  greenMin: 0.43,
+  greenMax: 0.57,
+  yellowMin: 0.3,
+  yellowMax: 0.7
+};
 const DRAW_HEALTH_MARGIN = 4;
 const MAX_CLASH_TAPS_PER_SECOND = 7;
 const SAFE_COLORS = {
@@ -324,6 +353,11 @@ let lastEnemyId = "storm-boxer";
 let aiDifficulty = "normal";
 let introTimer = 0;
 let pendingStart = null;
+let matchElapsed = 0;
+let activePickup = null;
+let pickupCooldown = 0;
+let pickupSpawnCheck = PICKUP_RULES.spawnCheckInterval;
+let pickupTiming = null;
 const effects = [];
 
 function safeNumber(value, fallback) {
@@ -397,6 +431,7 @@ function sanitizeFighter(fighter, fallbackX) {
   fighter.health = clampNumber(fighter.health, 0, fighter.maxHealth, fighter.maxHealth);
   fighter.stamina = clampNumber(fighter.stamina, 0, fighter.maxStamina, fighter.maxStamina);
   fighter.special = clampNumber(fighter.special, 0, fighter.maxSpecial, 0);
+  fighter.powerBoostTimer = clampNumber(fighter.powerBoostTimer, 0, 10, 0);
   fighter.x = clampNumber(fighter.x, STATS.arenaPadding, canvas.width - STATS.arenaPadding, fallbackX);
   fighter.y = clampNumber(fighter.y, 0, STATS.groundY, STATS.groundY);
   fighter.vx = clampNumber(fighter.vx, -1200, 1200, 0);
@@ -500,6 +535,7 @@ function createFighter(fighterData, x, facing, controlledByPlayer) {
     lowStaminaTimer: 0,
     gravityTimer: 0,
     gravitySource: null,
+    powerBoostTimer: 0,
     comboQueued: false,
     controlledByPlayer
   };
@@ -648,6 +684,8 @@ function clearMatchState() {
   enemyClashPower = 0;
   clashTapWindowStart = 0;
   clashTapCount = 0;
+  matchElapsed = 0;
+  clearPickupSystem();
   effects.length = 0;
   comboSequence = [];
   comboTimer = 0;
@@ -664,6 +702,7 @@ function clearMatchState() {
   ui.timerDisplay.classList.add("hidden");
   ui.timerDisplay.classList.remove("danger");
   ui.comboText.textContent = "";
+  if (ui.pickupTimingOverlay) ui.pickupTimingOverlay.classList.add("hidden");
   updateClashUI();
 }
 
@@ -762,6 +801,7 @@ function resetGame(selectedFighterIdToUse = selectedFighterId || "spirit-brawler
   shake = 0;
   screenFlash = 0;
   keys.clear();
+  matchElapsed = 0;
   matchTimeRemaining = ROUND_TIME_SECONDS;
   finalClashActive = false;
   finalClashTriggered = false;
@@ -905,6 +945,184 @@ function hop(fighter) {
   addDashDust(fighter.x, fighter.y, -fighter.facing, fighter.colors.suit);
 }
 
+
+function clearPickupSystem() {
+  activePickup = null;
+  pickupTiming = null;
+  pickupCooldown = 0;
+  pickupSpawnCheck = PICKUP_RULES.spawnCheckInterval;
+  if (ui.pickupTimingOverlay) ui.pickupTimingOverlay.classList.add("hidden");
+}
+
+function startPickupCooldown() {
+  activePickup = null;
+  pickupTiming = null;
+  pickupCooldown = PICKUP_RULES.cooldownMin + Math.random() * (PICKUP_RULES.cooldownMax - PICKUP_RULES.cooldownMin);
+  pickupSpawnCheck = PICKUP_RULES.spawnCheckInterval;
+  if (ui.pickupTimingOverlay) ui.pickupTimingOverlay.classList.add("hidden");
+}
+
+function pickupsAllowed() {
+  return gameState === "playing" && !finalClashActive && !pickupTiming && player?.health > 0 && enemy?.health > 0;
+}
+
+function updatePickupSystem(dt) {
+  if (pickupTiming) {
+    updatePickupTiming(dt);
+    return;
+  }
+  if (!pickupsAllowed()) return;
+  matchElapsed += dt;
+  pickupCooldown = Math.max(0, safeNumber(pickupCooldown, 0) - dt);
+
+  if (activePickup) {
+    activePickup.age += dt;
+    activePickup.floatTime += dt;
+    if (activePickup.age >= activePickup.lifetime) {
+      addFloatingText("PICKUP FADED", activePickup.x, activePickup.y - 46, "#9fb2d8", 18, 0.8);
+      startPickupCooldown();
+    }
+    return;
+  }
+
+  if (matchElapsed < PICKUP_RULES.minSpawnTime || pickupCooldown > 0) return;
+  pickupSpawnCheck -= dt;
+  if (pickupSpawnCheck > 0) return;
+  pickupSpawnCheck = PICKUP_RULES.spawnCheckInterval;
+
+  const playerLow = player.health / Math.max(1, player.maxHealth) < PICKUP_RULES.healthLowThreshold;
+  const enemyLow = enemy.health / Math.max(1, enemy.maxHealth) < PICKUP_RULES.healthLowThreshold;
+  const someoneLow = playerLow || enemyLow;
+  const healthChance = someoneLow ? 0.055 : 0.018;
+  const powerChance = someoneLow ? 0.012 : 0.005;
+  const roll = Math.random();
+  if (roll < powerChance) spawnPickup("power", playerLow, enemyLow);
+  else if (roll < powerChance + healthChance) spawnPickup("health", playerLow, enemyLow);
+}
+
+function spawnPickup(type, playerLow, enemyLow) {
+  if (activePickup || !pickupsAllowed()) return;
+  const targetLowFighter = playerLow && !enemyLow ? player : enemyLow && !playerLow ? enemy : null;
+  let x = 180 + Math.random() * (canvas.width - 360);
+  if (targetLowFighter) {
+    x = clampNumber(targetLowFighter.x + (Math.random() < 0.5 ? -1 : 1) * (120 + Math.random() * 120), 150, canvas.width - 150, x);
+  }
+  if (Math.abs(x - player.x) < 70) x = clampNumber(x + (x < canvas.width / 2 ? 95 : -95), 150, canvas.width - 150, x);
+  if (Math.abs(x - enemy.x) < 70) x = clampNumber(x + (x < canvas.width / 2 ? 95 : -95), 150, canvas.width - 150, x);
+
+  activePickup = {
+    type,
+    x,
+    y: STATS.groundY - 92,
+    age: 0,
+    lifetime: PICKUP_RULES.lifetime,
+    floatTime: Math.random() * Math.PI * 2,
+    aiClaimIntent: 0.35 + Math.random() * 0.35
+  };
+  const color = type === "health" ? "#65ffbd" : "#ffd35a";
+  addFloatingText("CLUTCH PICKUP!", x, STATS.groundY - 154, color, 28, 1.2);
+  addAuraBurst(x, STATS.groundY - 92, color, 12);
+}
+
+function fighterNearPickup(fighter) {
+  if (!activePickup || !fighter) return false;
+  return Math.abs(fighter.x - activePickup.x) <= PICKUP_RULES.interactRange && Math.abs((fighter.y - 84) - activePickup.y) <= 105;
+}
+
+function tryStartPickupTiming(fighter, aiControlled = false) {
+  if (!activePickup || pickupTiming || !pickupsAllowed() || !fighterNearPickup(fighter)) return false;
+  const pickup = activePickup;
+  activePickup = null;
+  fighter.vx = 0;
+  fighter.blocking = false;
+  pickupTiming = {
+    fighter,
+    type: pickup.type,
+    elapsed: 0,
+    pointer: 0,
+    direction: 1,
+    aiControlled,
+    aiDecisionTime: aiControlled ? 0.55 + Math.random() * 1.5 : 0,
+    resolved: false
+  };
+  ui.roundStatus.textContent = `${fighter.name} reaches for ${pickup.type.toUpperCase()}!`;
+  if (ui.pickupTimingOverlay) {
+    ui.pickupTimingOverlay.classList.remove("hidden");
+    ui.pickupTimingTitle.textContent = pickup.type === "health" ? "Health Spirit Orb" : "Power Energy Shard";
+    ui.pickupTimingPrompt.textContent = aiControlled ? `${fighter.name} timing grab...` : "Press Space in the green zone!";
+    ui.pickupTimingHint.textContent = aiControlled ? "AI can miss, hit good timing, or rarely land perfect." : "SPACE confirms. Green is perfect, yellow is good, red is weak.";
+    ui.pickupTimingPointer.style.left = "0%";
+  }
+  return true;
+}
+
+function updatePickupTiming(dt) {
+  if (!pickupTiming) return;
+  const timing = pickupTiming;
+  timing.elapsed += dt;
+  timing.pointer += timing.direction * PICKUP_RULES.timingSpeed * dt;
+  if (timing.pointer >= 1) { timing.pointer = 1; timing.direction = -1; }
+  if (timing.pointer <= 0) { timing.pointer = 0; timing.direction = 1; }
+  if (ui.pickupTimingPointer) ui.pickupTimingPointer.style.left = `${timing.pointer * 100}%`;
+
+  if (timing.aiControlled && timing.elapsed >= timing.aiDecisionTime) {
+    const low = timing.fighter.health / Math.max(1, timing.fighter.maxHealth) < PICKUP_RULES.healthLowThreshold;
+    const perfectChance = aiDifficulty === "hard" ? 0.26 : aiDifficulty === "easy" ? 0.1 : 0.18;
+    const goodChance = (aiDifficulty === "hard" ? 0.52 : aiDifficulty === "easy" ? 0.3 : 0.42) + (low ? 0.08 : 0);
+    const roll = Math.random();
+    resolvePickupTiming(roll < perfectChance ? "green" : roll < goodChance ? "yellow" : "red");
+    return;
+  }
+
+  if (timing.elapsed >= PICKUP_RULES.timingDuration) resolvePickupTiming("miss");
+}
+
+function handlePickupTimingConfirm() {
+  if (!pickupTiming || pickupTiming.aiControlled) return false;
+  const p = pickupTiming.pointer;
+  if (p >= PICKUP_RULES.greenMin && p <= PICKUP_RULES.greenMax) resolvePickupTiming("green");
+  else if (p >= PICKUP_RULES.yellowMin && p <= PICKUP_RULES.yellowMax) resolvePickupTiming("yellow");
+  else resolvePickupTiming("red");
+  return true;
+}
+
+function resolvePickupTiming(result) {
+  if (!pickupTiming || pickupTiming.resolved) return;
+  pickupTiming.resolved = true;
+  const fighter = pickupTiming.fighter;
+  const type = pickupTiming.type;
+  const label = result === "green" ? "PERFECT!" : result === "yellow" ? "GOOD!" : result === "red" ? "WEAK" : "MISSED!";
+  const color = result === "green" ? "#65ff8f" : result === "yellow" ? "#fff1a8" : "#ff7b9c";
+  let gainText = "No effect";
+
+  if (type === "health") {
+    const amount = result === "green" ? PICKUP_RULES.healthGreenRestore : result === "yellow" ? PICKUP_RULES.healthYellowRestore : result === "red" ? PICKUP_RULES.healthWeakRestore : 0;
+    const before = fighter.health;
+    fighter.health = clampNumber(fighter.health + amount, 0, fighter.maxHealth, fighter.maxHealth);
+    const gained = Math.round(fighter.health - before);
+    gainText = gained > 0 ? `+${gained} HEALTH` : "NO HEAL";
+  } else {
+    const specialGain = result === "green" ? PICKUP_RULES.powerGreenSpecial : result === "yellow" ? PICKUP_RULES.powerYellowSpecial : result === "red" ? PICKUP_RULES.powerWeakSpecial : 0;
+    const boostTime = result === "green" ? PICKUP_RULES.powerGreenBoost : result === "yellow" ? PICKUP_RULES.powerYellowBoost : 0;
+    fighter.special = clampNumber(fighter.special + specialGain, 0, fighter.maxSpecial, 0);
+    if (boostTime > 0) fighter.powerBoostTimer = Math.max(fighter.powerBoostTimer || 0, boostTime);
+    gainText = specialGain > 0 ? `+${specialGain} SPECIAL${boostTime > 0 ? " + POWER" : ""}` : "NO POWER";
+  }
+
+  addFloatingText(label, fighter.x, fighter.y - 178, color, result === "green" ? 34 : 26, 1.1);
+  addFloatingText(gainText, fighter.x, fighter.y - 146, color, 22, 1.1);
+  addAuraBurst(fighter.x, fighter.y - 86, color, result === "green" ? 24 : result === "yellow" ? 14 : 5);
+  if (result === "green") {
+    screenFlash = Math.max(screenFlash, 0.45);
+    shake = Math.max(shake, 14);
+  }
+  if (ui.pickupTimingOverlay) ui.pickupTimingOverlay.classList.add("hidden");
+  ui.roundStatus.textContent = `${label} ${gainText}`;
+  pickupTiming = null;
+  startPickupCooldown();
+  sanitizeFighter(fighter, fighter.controlledByPlayer ? 260 : 700);
+}
+
 function update(dt) {
   if (gameState === "intro") {
     introTimer = Math.max(0, introTimer - dt);
@@ -930,10 +1148,22 @@ function update(dt) {
   if (comboTimer <= 0) comboSequence = [];
   if (comboMessageTimer <= 0) ui.comboText.textContent = "";
 
+  if (pickupTiming) {
+    updatePickupSystem(dt);
+    updateTimedMatch(dt);
+    updateEffects(dt);
+    sanitizeFighter(player, 260);
+    sanitizeFighter(enemy, 700);
+    checkWinner();
+    updateUI();
+    return;
+  }
+
   handlePlayerInput(dt);
   updateAI(dt);
   updateFighter(player, enemy, dt);
   updateFighter(enemy, player, dt);
+  updatePickupSystem(dt);
   updateTimedMatch(dt);
   updateEffects(dt);
   sanitizeFighter(player, 260);
@@ -955,6 +1185,9 @@ function updateTimedMatch(dt) {
 }
 
 function startFinalClash() {
+  activePickup = null;
+  pickupTiming = null;
+  if (ui.pickupTimingOverlay) ui.pickupTimingOverlay.classList.add("hidden");
   finalClashTriggered = true;
   finalClashActive = true;
   finalClashResolved = false;
@@ -1082,6 +1315,21 @@ function updateAI(dt) {
 
   enemy.blocking = enemy.aiBlockTimer > 0 && enemy.stamina > STATS.guardBreakLimit + 4;
 
+  if (activePickup && !pickupTiming && !enemy.blocking && enemy.dashTimer <= 0) {
+    const enemyLow = enemy.health / Math.max(1, enemy.maxHealth) < PICKUP_RULES.healthLowThreshold;
+    const enemyBehind = enemy.health < player.health - 18;
+    const pickupMakesSense = activePickup.type === "health" ? enemyLow || enemyBehind : enemy.special < enemy.maxSpecial * 0.75 || enemyBehind;
+    const aiInterest = pickupMakesSense ? activePickup.aiClaimIntent : activePickup.aiClaimIntent * 0.28;
+    if (Math.random() < aiInterest * 0.018 * difficultyFactor) {
+      const pickupDirection = Math.sign(activePickup.x - enemy.x) || enemy.facing;
+      enemy.facing = pickupDirection;
+      enemy.moveIntent = pickupDirection;
+      enemy.vx = pickupDirection * safeNumber(enemy.fighterData?.stats?.speed, STATS.walkSpeed) * 0.78;
+      if (fighterNearPickup(enemy) && Math.random() < 0.32 * difficultyFactor) tryStartPickupTiming(enemy, true);
+      return;
+    }
+  }
+
   // Always keep the AI moving toward a usable fighting range so it does not freeze.
   if (!enemy.blocking && enemy.dashTimer <= 0) {
     const aiSpeed = safeNumber(enemy.fighterData?.stats?.speed, STATS.walkSpeed) * (enemy.gravityTimer > 0 ? 0.58 : 1);
@@ -1167,6 +1415,10 @@ function updateFighter(fighter, target, dt) {
   if (fighter.knockbackTimer > 0) fighter.knockbackTimer -= dt;
   if (fighter.hitReactTimer > 0) fighter.hitReactTimer -= dt;
   if (fighter.lowStaminaTimer > 0) fighter.lowStaminaTimer -= dt;
+  if (fighter.powerBoostTimer > 0) {
+    fighter.powerBoostTimer = Math.max(0, fighter.powerBoostTimer - dt);
+    if (Math.random() < 0.2) addAuraBurst(fighter.x, fighter.y - 86, "#ffd35a", 1);
+  }
 
   fighter.x += fighter.vx * dt;
   fighter.vy += 1300 * dt;
@@ -1341,6 +1593,7 @@ function tryHit(attacker, defender, damage, knockback, type, specialGain, finalS
   if (!facingTarget || distance > range) return false;
 
   let finalDamage = damage;
+  if (attacker.powerBoostTimer > 0) finalDamage *= PICKUP_RULES.powerDamageMultiplier;
   let blocked = false;
 
   if (defender.blocking && defender.stamina > STATS.guardBreakLimit) {
@@ -1511,6 +1764,9 @@ function checkWinner() {
 }
 
 function endMatch(winner, resultType) {
+  activePickup = null;
+  pickupTiming = null;
+  if (ui.pickupTimingOverlay) ui.pickupTimingOverlay.classList.add("hidden");
   gameState = "ended";
   finalClashActive = false;
   ui.finalClashOverlay.classList.add("hidden");
@@ -1569,6 +1825,7 @@ function draw() {
   if (shake > 0) ctx.translate((Math.random() - 0.5) * shake, (Math.random() - 0.5) * shake);
   drawArena();
   drawEffects("behind");
+  drawPickup();
   drawFighter(player);
   drawFighter(enemy);
   drawEffects("front");
@@ -1714,6 +1971,91 @@ function drawArena() {
   ctx.fillText("DARK TOURNAMENT", canvas.width / 2, STATS.groundY + 82);
 }
 
+
+function drawPickup() {
+  if (!activePickup || gameState !== "playing") return;
+  const pulse = 0.5 + Math.sin(performance.now() / 180 + activePickup.floatTime) * 0.5;
+  const bob = Math.sin(performance.now() / 320 + activePickup.floatTime) * 8;
+  const x = activePickup.x;
+  const y = activePickup.y + bob;
+  const isHealth = activePickup.type === "health";
+  const primary = isHealth ? "#65ffbd" : "#ffd35a";
+  const secondary = isHealth ? "#68f7ff" : "#ff4d76";
+  const label = isHealth ? "HEALTH" : "POWER";
+
+  ctx.save();
+  ctx.globalCompositeOperation = "lighter";
+  const aura = ctx.createRadialGradient(x, y, 8, x, y, isHealth ? 62 : 72);
+  aura.addColorStop(0, `${primary}aa`);
+  aura.addColorStop(0.42, `${secondary}55`);
+  aura.addColorStop(1, "rgba(255,255,255,0)");
+  ctx.fillStyle = aura;
+  ctx.beginPath();
+  ctx.arc(x, y, (isHealth ? 54 : 62) + pulse * 8, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.strokeStyle = primary;
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.arc(x, y, 32 + pulse * 5, 0, Math.PI * 2);
+  ctx.stroke();
+
+  if (isHealth) {
+    const orb = ctx.createRadialGradient(x - 8, y - 8, 3, x, y, 23);
+    orb.addColorStop(0, "#ffffff");
+    orb.addColorStop(0.38, primary);
+    orb.addColorStop(1, "#0a6d72");
+    ctx.fillStyle = orb;
+    ctx.beginPath();
+    ctx.arc(x, y, 21 + pulse * 2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = "#d9fff5";
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(x - 10, y);
+    ctx.lineTo(x + 10, y);
+    ctx.moveTo(x, y - 10);
+    ctx.lineTo(x, y + 10);
+    ctx.stroke();
+  } else {
+    ctx.fillStyle = "#fff1a8";
+    ctx.strokeStyle = secondary;
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(x, y - 31);
+    ctx.lineTo(x + 20, y - 3);
+    ctx.lineTo(x + 7, y + 31);
+    ctx.lineTo(x - 20, y + 7);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = secondary;
+    ctx.beginPath();
+    ctx.moveTo(x + 2, y - 20);
+    ctx.lineTo(x + 9, y + 2);
+    ctx.lineTo(x - 5, y + 19);
+    ctx.lineTo(x - 11, y - 2);
+    ctx.closePath();
+    ctx.fill();
+  }
+  ctx.globalCompositeOperation = "source-over";
+  ctx.font = "900 15px Trebuchet MS";
+  ctx.textAlign = "center";
+  ctx.lineWidth = 4;
+  ctx.strokeStyle = "rgba(0,0,0,0.75)";
+  ctx.fillStyle = "#ffffff";
+  ctx.strokeText(label, x, y + 54);
+  ctx.fillText(label, x, y + 54);
+
+  if (fighterNearPickup(player) && !pickupTiming) {
+    ctx.font = "900 18px Trebuchet MS";
+    ctx.fillStyle = "#fff1a8";
+    ctx.strokeText("Press E to grab", x, y - 52);
+    ctx.fillText("Press E to grab", x, y - 52);
+  }
+  ctx.restore();
+}
+
 function drawFighter(fighter) {
   sanitizeFighter(fighter, fighter.controlledByPlayer ? 260 : 700);
   const x = fighter.x;
@@ -1734,6 +2076,17 @@ function drawFighter(fighter) {
     ctx.fillStyle = fighter.colors.aura;
     ctx.beginPath();
     ctx.ellipse(x, y - 67, 60 + Math.sin(performance.now() / 85) * 7, 92, 0, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  if (fighter.powerBoostTimer > 0) {
+    ctx.strokeStyle = "rgba(255, 211, 90, 0.82)";
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.ellipse(x, y - 70, 68 + Math.sin(performance.now() / 95) * 6, 98, 0, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.fillStyle = "rgba(255, 77, 118, 0.13)";
+    ctx.beginPath();
+    ctx.ellipse(x, y - 70, 74, 104, 0, 0, Math.PI * 2);
     ctx.fill();
   }
   if (fighter.lowStaminaTimer > 0) {
@@ -2180,17 +2533,18 @@ window.addEventListener("keydown", (event) => {
   }
   if (key === " ") {
     event.preventDefault();
-    if (!event.repeat) handleClashTap();
+    if (!event.repeat && !handlePickupTimingConfirm()) handleClashTap();
     return;
   }
   keys.add(key);
-  if (["a", "d", "w", "j", "k", "l", "i", "shift"].includes(key)) event.preventDefault();
+  if (["a", "d", "w", "j", "k", "l", "i", "e", "shift"].includes(key)) event.preventDefault();
   if (gameState !== "playing") return;
   if (key === "w") hop(player);
   if (key === "shift") dash(player);
   if (key === "j") startAttack(player, "punch", enemy);
   if (key === "k") startAttack(player, "kick", enemy);
   if (key === "i") startAttack(player, "special", enemy);
+  if (key === "e" && !event.repeat) tryStartPickupTiming(player, false);
 });
 
 window.addEventListener("keyup", (event) => {
